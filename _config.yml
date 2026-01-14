@@ -9,3 +9,4 @@ plugins:
 
 navbar-links:
   Home: "/"
+  About: "/about/"
