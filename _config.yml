@@ -1,3 +1,11 @@
-title: Vincent
-description: Personal website of Vincent
-theme: jekyll-theme-minimal
+title: Vince
+description: Time to get some coffee ☕
+author: Vince
+
+remote_theme: daattali/beautiful-jekyll
+
+plugins:
+  - jekyll-remote-theme
+
+navbar-links:
+  Home: "/"
