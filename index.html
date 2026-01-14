@@ -1,15 +1,128 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Vincent | Personal Website</title>
+  <style>
+    :root { --max: 980px; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; font-family: Arial, Helvetica, sans-serif; line-height: 1.6; }
+    .nav {
+      position: sticky; top: 0; z-index: 10;
+      background: #fff; border-bottom: 1px solid #eee;
+    }
+    .nav-inner {
+      max-width: var(--max); margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px;
+    }
+    .brand { font-weight: 700; text-decoration: none; color: #111; }
+    .links a {
+      text-decoration: none; color: #111;
+      margin-left: 14px; padding: 8px 10px; border-radius: 10px;
+    }
+    .links a:hover { background: #f3f3f3; }
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 40px 16px; }
+    .hero { padding: 56px 0; }
+    .hero h1 { margin: 0 0 10px; font-size: 40px; }
+    .pill {
+      display: inline-block; padding: 6px 10px; border-radius: 999px;
+      border: 1px solid #eee; background: #fafafa; font-size: 14px;
+      margin-top: 10px;
+    }
+    section { padding: 40px 0; border-top: 1px solid #f0f0f0; }
+    h2 { margin: 0 0 10px; font-size: 24px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .card { border: 1px solid #eee; border-radius: 16px; padding: 16px; background: #fff; }
+    .muted { color: #555; }
+    .btn {
+      display: inline-block; text-decoration: none; color: #111;
+      border: 1px solid #eee; border-radius: 12px; padding: 10px 12px;
+    }
+    .btn:hover { background: #f3f3f3; }
+    footer { border-top: 1px solid #eee; padding: 20px 0; color: #666; font-size: 14px; }
+    @media (max-width: 700px) {
+      .grid { grid-template-columns: 1fr; }
+      .links a { margin-left: 8px; padding: 8px; }
+      .hero h1 { font-size: 32px; }
+    }
+  </style>
 </head>
 <body>
-  <h1>Hello, I’m Vincent 👋</h1>
-  <p>This is my GitHub Pages website.</p>
-  <p>More content coming soon.</p>
+
+  <!-- Top Nav -->
+  <div class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="#home">Vincent</a>
+      <div class="links">
+        <a href="#about">About</a>
+        <a href="#projects">Projects</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap" id="home">
+    <!-- Hero -->
+    <div class="hero">
+      <h1>Hi, I’m Vincent 👋</h1>
+      <p class="muted">
+        UE5 developer building <b>Aspectu</b> — a 4D construction simulation tool.
+      </p>
+      <div class="pill">Melbourne, Australia • UE5 • Runtime import • UI/Tools</div>
+      <p style="margin-top:18px;">
+        <a class="btn" href="#projects">See my projects</a>
+        <a class="btn" style="margin-left:10px;" href="https://github.com/VinceIsWorking" target="_blank" rel="noreferrer">GitHub</a>
+      </p>
+    </div>
+
+    <!-- About -->
+    <section id="about">
+      <h2>About</h2>
+      <p class="muted">
+        I build practical tools in Unreal Engine 5, focusing on performance, clean UI, and real-world workflows.
+        This website is hosted on GitHub Pages.
+      </p>
+    </section>
+
+    <!-- Projects -->
+    <section id="projects">
+      <h2>Projects</h2>
+      <div class="grid">
+        <div class="card">
+          <h3 style="margin:0 0 6px;">Aspectu</h3>
+          <p class="muted" style="margin:0 0 12px;">
+            Standalone UE5 app for 4D construction simulation: import models + schedule, bind tasks, play timeline, export video.
+          </p>
+          <a class="btn" href="#" onclick="alert('You can link to a demo page or repo here.'); return false;">View</a>
+        </div>
+        <div class="card">
+          <h3 style="margin:0 0 6px;">ModelTree</h3>
+          <p class="muted" style="margin:0 0 12px;">
+            TreeView system for runtime-imported models: recursion, expand/collapse, data mapping, UI performance.
+          </p>
+          <a class="btn" href="#" onclick="alert('You can link to a repo or writeup here.'); return false;">View</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact">
+      <h2>Contact</h2>
+      <p class="muted">
+        Email: <a href="mailto:YOUR_EMAIL_HERE">YOUR_EMAIL_HERE</a><br/>
+        LinkedIn: <a href="#" target="_blank" rel="noreferrer">YOUR_LINKEDIN_HERE</a>
+      </p>
+    </section>
+
+    <footer>
+      © <span id="year"></span> Vincent • Built with GitHub Pages
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
-
-Add index.html
