@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vincent Liiii | Retro Portfolio World</title>
+  <title>Vincent Li | Retro Portfolio World</title>
   <style>
     :root {
       --panel: rgba(15, 23, 42, 0.92);
@@ -229,6 +229,8 @@
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
   <script>
     const PLATFORM_WIDTH = 53;
+    const PLATFORM_GAP_X = 180;
+    const PLATFORM_GAP_Y = 90;
 
     const portfolioContent = {
       about: {
@@ -366,13 +368,18 @@
         this.createTextures();
       }
 
-      create() {
+      async create() {
         this.worldWidth = window.innerWidth;
         this.worldHeight = window.innerHeight;
 
         this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
         this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
         this.cameras.main.roundPixels = true;
+
+        if (!weatherLoadedOnce) {
+          weatherLoadedOnce = true;
+          await fetchMelbourneWeatherTheme();
+        }
 
         this.layout = this.buildResponsiveLayout();
 
@@ -384,15 +391,6 @@
         this.createControls();
         this.createOverlapZones();
         this.createSigns();
-
-        if (!weatherLoadedOnce) {
-          weatherLoadedOnce = true;
-          fetchMelbourneWeatherTheme().then(() => {
-            this.scene.restart();
-          }).catch(() => {
-            // keep current default theme
-          });
-        }
       }
 
       createTextures() {
@@ -515,16 +513,20 @@
 
       buildResponsiveLayout() {
         const groundY = this.worldHeight - 78;
-        const level1Y = this.worldHeight - 165;
-        const level2Y = this.worldHeight - 255;
-        const level3Y = this.worldHeight - 345;
-        const level4Y = this.worldHeight - 435;
+
+        const centerX = this.worldWidth / 2;
+        const baseY = Math.min(this.worldHeight - 165, this.worldHeight * 0.72);
+
+        const level1Y = baseY;
+        const level2Y = baseY - PLATFORM_GAP_Y;
+        const level3Y = baseY - PLATFORM_GAP_Y * 2;
+        const level4Y = baseY - PLATFORM_GAP_Y * 3;
 
         const points = {
-          about: Math.round(this.worldWidth * 0.42),
-          projects: Math.round(this.worldWidth * 0.58),
-          resume: Math.round(this.worldWidth * 0.42),
-          contact: Math.round(this.worldWidth * 0.58)
+          about: centerX - PLATFORM_GAP_X / 2,
+          projects: centerX + PLATFORM_GAP_X / 2,
+          resume: centerX - PLATFORM_GAP_X / 2,
+          contact: centerX + PLATFORM_GAP_X / 2
         };
 
         return { groundY, level1Y, level2Y, level3Y, level4Y, points };
@@ -779,7 +781,6 @@
 
     window.addEventListener('resize', () => {
       game.scale.resize(window.innerWidth, window.innerHeight);
-      weatherLoadedOnce = false;
       game.scene.stop('PortfolioScene');
       game.scene.start('PortfolioScene');
     });
