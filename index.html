@@ -1,22 +1,661 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>My Mario Portfolio</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vincent Li | Retro Portfolio World</title>
   <style>
+    :root {
+      --bg: #0f172a;
+      --panel: rgba(15, 23, 42, 0.92);
+      --border: #f8fafc;
+      --accent: #facc15;
+      --accent-2: #38bdf8;
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
     body {
-      margin:0;
-      background:black;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: linear-gradient(180deg, #7dd3fc 0%, #bae6fd 45%, #d9f99d 100%);
+      font-family: "Courier New", monospace;
+      color: var(--text);
+    }
+
+    #game-container {
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .pixel-ui {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      pointer-events: none;
+      image-rendering: pixelated;
+      border: 4px solid #0f172a;
+      box-shadow: 0 0 0 4px #ffffff, 0 8px 0 rgba(15, 23, 42, 0.5);
+    }
+
+    #hud {
+      top: 16px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.88);
+      color: #0f172a;
+      padding: 10px 14px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      max-width: calc(100vw - 24px);
+    }
+
+    #interaction-hint {
+      bottom: 28px;
+      display: none;
+      background: rgba(15, 23, 42, 0.9);
+      color: #fff;
+      padding: 12px 18px;
+      font-size: 15px;
+    }
+
+    #modal-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(2, 6, 23, 0.6);
+      z-index: 30;
+    }
+
+    #modal {
+      width: min(860px, 100%);
+      max-height: min(82vh, 920px);
+      overflow: auto;
+      background: var(--panel);
+      border: 4px solid #0f172a;
+      box-shadow: 0 0 0 4px #fff, 0 12px 0 rgba(15, 23, 42, 0.6);
+      padding: 0;
+      image-rendering: pixelated;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 20px;
+      border-bottom: 4px solid rgba(255, 255, 255, 0.15);
+      background: linear-gradient(90deg, rgba(250, 204, 21, 0.2), rgba(56, 189, 248, 0.18));
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.2;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .modal-close {
+      border: 3px solid #fff;
+      background: #ef4444;
+      color: #fff;
+      font: inherit;
+      font-size: 14px;
+      padding: 8px 12px;
+      cursor: pointer;
+      pointer-events: auto;
+      text-transform: uppercase;
+    }
+
+    .modal-body {
+      padding: 20px;
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    .modal-body h3 {
+      margin-top: 0;
+      color: var(--accent-2);
+      text-transform: uppercase;
+      font-size: 18px;
+    }
+
+    .modal-body p,
+    .modal-body li {
+      color: var(--muted);
+    }
+
+    .modal-body ul {
+      padding-left: 20px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .pixel-card {
+      border: 3px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 14px;
+    }
+
+    .pixel-card strong {
+      display: block;
+      color: #fff;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .modal-body a {
+      color: #fde68a;
+      word-break: break-word;
+    }
+
+    .kbd {
+      display: inline-block;
+      min-width: 28px;
+      padding: 3px 6px;
+      text-align: center;
+      border: 2px solid #0f172a;
+      background: #fff;
+      color: #0f172a;
+      box-shadow: 0 2px 0 #0f172a;
+      font-weight: 700;
+    }
+
+    @media (max-width: 700px) {
+      #hud {
+        font-size: 12px;
+        padding: 8px 10px;
+        gap: 8px;
+      }
+
+      .modal-title {
+        font-size: 18px;
+      }
+
+      .modal-body {
+        font-size: 14px;
+      }
     }
   </style>
 </head>
-
 <body>
+  <div id="game-container"></div>
 
-<script src="main.js"></script>
+  <div id="hud" class="pixel-ui">
+    <span><span class="kbd">A</span> Left</span>
+    <span><span class="kbd">D</span> Right</span>
+    <span><span class="kbd">W</span> Jump</span>
+    <span><span class="kbd">E</span> Interact</span>
+    <span><span class="kbd">Esc</span> Close</span>
+  </div>
 
+  <div id="interaction-hint" class="pixel-ui">Press E to interact</div>
+
+  <div id="modal-overlay">
+    <div id="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title">Info</h2>
+        <button class="modal-close" id="close-modal">Close Esc</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
+  <script>
+    const portfolioContent = {
+      about: {
+        title: 'About Me',
+        body: `
+          <h3>Hello, I'm Vincent</h3>
+          <p>I build interactive software experiences with a strong focus on Unreal Engine, real-time visualization, tools, and creative technical problem solving.</p>
+          <p>This portfolio is designed like a side-scrolling game so visitors can explore my work instead of clicking through a traditional menu.</p>
+          <div class="card-grid">
+            <div class="pixel-card"><strong>Base</strong> Melbourne, Australia</div>
+            <div class="pixel-card"><strong>Background</strong> Software / interactive development</div>
+            <div class="pixel-card"><strong>Style</strong> Technical + creative + product-minded</div>
+          </div>
+        `
+      },
+      projects: {
+        title: 'Projects',
+        body: `
+          <h3>Featured Work</h3>
+          <div class="card-grid">
+            <div class="pixel-card">
+              <strong>Aspectu</strong>
+              UE5 standalone application for construction-stage simulation, model import, XML scheduling, timeline playback, and video export.
+            </div>
+            <div class="pixel-card">
+              <strong>ModelTree</strong>
+              TreeView-driven model structure and runtime data handling system for large imported scene hierarchies.
+            </div>
+            <div class="pixel-card">
+              <strong>ProjectK</strong>
+              Dance learning / motion comparison concept using reference video + user video analysis.
+            </div>
+          </div>
+          <p style="margin-top:16px;">Add your real links here:</p>
+          <ul>
+            <li>GitHub: <a href="https://github.com/vincelsworking" target="_blank" rel="noopener noreferrer">github.com/vincelsworking</a></li>
+            <li>Demo / case study links can be added per project</li>
+          </ul>
+        `
+      },
+      skills: {
+        title: 'Skills',
+        body: `
+          <h3>Technical Skills</h3>
+          <div class="card-grid">
+            <div class="pixel-card"><strong>Game / Realtime</strong> Unreal Engine 5, Blueprint, C++, runtime import workflows</div>
+            <div class="pixel-card"><strong>Web</strong> HTML, CSS, JavaScript, Phaser 3</div>
+            <div class="pixel-card"><strong>Tools</strong> GitHub, Visual Studio, debugging, pipeline automation</div>
+            <div class="pixel-card"><strong>Product Thinking</strong> UX flow, prototyping, feature architecture, iteration</div>
+          </div>
+        `
+      },
+      contact: {
+        title: 'Contact',
+        body: `
+          <h3>Let's Connect</h3>
+          <ul>
+            <li>Email: <a href="mailto:your-email@example.com">your-email@example.com</a></li>
+            <li>LinkedIn: <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer">Add your LinkedIn URL</a></li>
+            <li>GitHub: <a href="https://github.com/vincelsworking" target="_blank" rel="noopener noreferrer">github.com/vincelsworking</a></li>
+          </ul>
+          <p>You can also place a QR code image here later if you want this section to feel more game-like.</p>
+        `
+      },
+      resume: {
+        title: 'Resume',
+        body: `
+          <h3>Download Resume</h3>
+          <p>Add your PDF to the repository, for example:</p>
+          <ul>
+            <li><code>/assets/Vincent_Li_Resume.pdf</code></li>
+          </ul>
+          <p>Then update this link:</p>
+          <p><a href="./assets/Vincent_Li_Resume.pdf" target="_blank" rel="noopener noreferrer">Open Resume PDF</a></p>
+        `
+      }
+    };
+
+    const modalOverlay = document.getElementById('modal-overlay');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    const closeModalButton = document.getElementById('close-modal');
+    const interactionHint = document.getElementById('interaction-hint');
+
+    let activeInteractable = null;
+    let isModalOpen = false;
+
+    function openModal(key) {
+      const item = portfolioContent[key];
+      if (!item) return;
+      modalTitle.textContent = item.title;
+      modalBody.innerHTML = item.body;
+      modalOverlay.style.display = 'flex';
+      isModalOpen = true;
+    }
+
+    function closeModal() {
+      modalOverlay.style.display = 'none';
+      isModalOpen = false;
+    }
+
+    closeModalButton.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeModal();
+    });
+
+    class PortfolioScene extends Phaser.Scene {
+      constructor() {
+        super('PortfolioScene');
+      }
+
+      preload() {
+        this.createTextures();
+      }
+
+      create() {
+        this.worldWidth = 3600;
+        this.worldHeight = 720;
+
+        this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
+        this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
+        this.cameras.main.setBackgroundColor('#7dd3fc');
+        this.cameras.main.roundPixels = true;
+
+        this.drawBackground();
+        this.createPlatforms();
+        this.createDecorations();
+        this.createInteractables();
+        this.createPlayer();
+        this.createControls();
+        this.createOverlapZones();
+        this.createSigns();
+      }
+
+      createTextures() {
+        const g = this.add.graphics();
+
+        g.clear();
+        g.fillStyle(0x22c55e, 1);
+        g.fillRect(0, 0, 64, 24);
+        g.fillStyle(0x166534, 1);
+        for (let x = 0; x < 64; x += 8) g.fillRect(x, 16, 8, 8);
+        g.generateTexture('ground', 64, 24);
+
+        g.clear();
+        g.fillStyle(0xf59e0b, 1);
+        g.fillRect(0, 0, 48, 16);
+        g.fillStyle(0x92400e, 1);
+        g.fillRect(0, 12, 48, 4);
+        g.generateTexture('platform', 48, 16);
+
+        g.clear();
+        g.fillStyle(0x2563eb, 1);
+        g.fillRect(10, 8, 20, 24);
+        g.fillStyle(0xfbbf24, 1);
+        g.fillRect(14, 0, 12, 12);
+        g.fillStyle(0x1e293b, 1);
+        g.fillRect(8, 30, 10, 6);
+        g.fillRect(22, 30, 10, 6);
+        g.generateTexture('player', 40, 36);
+
+        g.clear();
+        g.fillStyle(0xb45309, 1);
+        g.fillRect(24, 28, 16, 28);
+        g.fillStyle(0x991b1b, 1);
+        g.fillRect(8, 16, 48, 24);
+        g.fillStyle(0xfef3c7, 1);
+        g.fillRect(14, 22, 12, 10);
+        g.fillRect(38, 22, 12, 10);
+        g.generateTexture('house', 64, 64);
+
+        g.clear();
+        g.fillStyle(0x475569, 1);
+        g.fillRect(10, 8, 44, 34);
+        g.fillStyle(0x0f172a, 1);
+        g.fillRect(14, 12, 36, 22);
+        g.fillStyle(0x64748b, 1);
+        g.fillRect(0, 42, 64, 14);
+        g.generateTexture('computer', 64, 56);
+
+        g.clear();
+        g.fillStyle(0x78350f, 1);
+        g.fillRect(18, 18, 28, 28);
+        g.fillStyle(0xfacc15, 1);
+        g.fillRect(22, 22, 20, 8);
+        g.fillStyle(0x57534e, 1);
+        g.fillRect(24, 46, 16, 10);
+        g.generateTexture('bench', 64, 64);
+
+        g.clear();
+        g.fillStyle(0xdc2626, 1);
+        g.fillRect(18, 6, 28, 54);
+        g.fillStyle(0xfef2f2, 1);
+        g.fillRect(24, 14, 16, 22);
+        g.fillStyle(0x111827, 1);
+        g.fillRect(28, 40, 8, 10);
+        g.generateTexture('booth', 64, 64);
+
+        g.clear();
+        g.fillStyle(0xeab308, 1);
+        g.fillRect(10, 8, 44, 30);
+        g.fillStyle(0x92400e, 1);
+        g.fillRect(28, 38, 8, 20);
+        g.fillStyle(0x1f2937, 1);
+        g.fillRect(14, 12, 36, 22);
+        g.generateTexture('signboard', 64, 64);
+
+        g.clear();
+        g.fillStyle(0xffffff, 0.95);
+        g.fillRect(0, 0, 64, 32);
+        g.fillStyle(0xdbeafe, 1);
+        g.fillRect(6, 6, 52, 20);
+        g.generateTexture('cloud', 64, 32);
+
+        g.destroy();
+      }
+
+      drawBackground() {
+        const sky = this.add.rectangle(this.worldWidth / 2, this.worldHeight / 2, this.worldWidth, this.worldHeight, 0x7dd3fc);
+        sky.setScrollFactor(0);
+
+        for (let i = 0; i < 14; i++) {
+          const cloud = this.add.image(220 + i * 260, 90 + (i % 3) * 35, 'cloud').setAlpha(0.8);
+          cloud.setScrollFactor(0.25);
+        }
+
+        for (let i = 0; i < 18; i++) {
+          const x = i * 220;
+          this.add.rectangle(x + 100, 450, 180, 180, 0x93c5fd).setOrigin(0.5, 1).setScrollFactor(0.45);
+          this.add.rectangle(x + 140, 450, 220, 120, 0x60a5fa).setOrigin(0.5, 1).setScrollFactor(0.55);
+        }
+
+        for (let i = 0; i < 22; i++) {
+          const hill = this.add.ellipse(i * 180 + 60, 620, 260, 150, 0x4ade80);
+          hill.setOrigin(0.5, 1);
+          hill.setScrollFactor(0.7);
+        }
+      }
+
+      createPlatforms() {
+        this.platforms = this.physics.add.staticGroup();
+
+        for (let x = 0; x < this.worldWidth; x += 64) {
+          const ground = this.platforms.create(x, 690, 'ground').setOrigin(0, 0);
+          ground.refreshBody();
+        }
+
+        const ledges = [
+          { x: 280, y: 560, count: 3 },
+          { x: 720, y: 500, count: 3 },
+          { x: 1180, y: 560, count: 2 },
+          { x: 1480, y: 470, count: 4 },
+          { x: 1980, y: 540, count: 3 },
+          { x: 2400, y: 480, count: 3 },
+          { x: 2850, y: 540, count: 2 },
+          { x: 3180, y: 460, count: 4 }
+        ];
+
+        ledges.forEach(({ x, y, count }) => {
+          for (let i = 0; i < count; i++) {
+            const platform = this.platforms.create(x + i * 48, y, 'platform').setOrigin(0, 0);
+            platform.refreshBody();
+          }
+        });
+
+        const stairs = [
+          { x: 1710, y: 642 },
+          { x: 1758, y: 610 },
+          { x: 1806, y: 578 },
+          { x: 1854, y: 546 }
+        ];
+
+        stairs.forEach(({ x, y }) => {
+          const step = this.platforms.create(x, y, 'platform').setScale(1, 1).setOrigin(0, 0);
+          step.refreshBody();
+        });
+      }
+
+      createDecorations() {
+        const deco = [
+          { x: 180, y: 626, color: 0x16a34a },
+          { x: 860, y: 626, color: 0x15803d },
+          { x: 1320, y: 626, color: 0x16a34a },
+          { x: 2210, y: 626, color: 0x166534 },
+          { x: 3010, y: 626, color: 0x15803d }
+        ];
+
+        deco.forEach(({ x, y, color }) => {
+          this.add.rectangle(x, y, 28, 70, 0x92400e).setOrigin(0.5, 1);
+          this.add.circle(x, y - 56, 34, color).setOrigin(0.5, 1);
+        });
+      }
+
+      createInteractables() {
+        this.interactables = [
+          { x: 380, y: 626, key: 'about', sprite: 'house', label: 'ABOUT ME' },
+          { x: 980, y: 566, key: 'projects', sprite: 'computer', label: 'PROJECTS' },
+          { x: 1620, y: 626, key: 'skills', sprite: 'bench', label: 'SKILLS' },
+          { x: 2500, y: 546, key: 'contact', sprite: 'booth', label: 'CONTACT' },
+          { x: 3300, y: 626, key: 'resume', sprite: 'signboard', label: 'RESUME' }
+        ];
+
+        this.interactables.forEach(item => {
+          item.gameObject = this.add.image(item.x, item.y, item.sprite).setOrigin(0.5, 1);
+          item.zone = this.add.zone(item.x, item.y - 24, 110, 110);
+          this.physics.world.enable(item.zone);
+          item.zone.body.setAllowGravity(false);
+          item.zone.body.moves = false;
+        });
+      }
+
+      createSigns() {
+        this.interactables.forEach(item => {
+          this.add.text(item.x, item.y - 84, item.label, {
+            fontFamily: 'Courier New, monospace',
+            fontSize: '16px',
+            color: '#0f172a',
+            backgroundColor: '#ffffff',
+            padding: { left: 6, right: 6, top: 4, bottom: 4 }
+          }).setOrigin(0.5, 1);
+        });
+      }
+
+      createPlayer() {
+        this.player = this.physics.add.sprite(100, 560, 'player');
+        this.player.setCollideWorldBounds(true);
+        this.player.setBounce(0);
+        this.player.setSize(18, 34).setOffset(11, 2);
+        this.player.body.setGravityY(900);
+        this.physics.add.collider(this.player, this.platforms);
+        this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
+        this.cameras.main.setDeadzone(180, 120);
+      }
+
+      createControls() {
+        this.keys = this.input.keyboard.addKeys({
+          left: Phaser.Input.Keyboard.KeyCodes.A,
+          right: Phaser.Input.Keyboard.KeyCodes.D,
+          up: Phaser.Input.Keyboard.KeyCodes.W,
+          down: Phaser.Input.Keyboard.KeyCodes.S,
+          interact: Phaser.Input.Keyboard.KeyCodes.E,
+          esc: Phaser.Input.Keyboard.KeyCodes.ESC
+        });
+      }
+
+      createOverlapZones() {
+        this.interactables.forEach(item => {
+          this.physics.add.overlap(this.player, item.zone, () => {
+            activeInteractable = item;
+          });
+        });
+      }
+
+      update() {
+        if (Phaser.Input.Keyboard.JustDown(this.keys.esc) && isModalOpen) {
+          closeModal();
+        }
+
+        if (isModalOpen) {
+          this.player.setVelocityX(0);
+          interactionHint.style.display = 'none';
+          return;
+        }
+
+        let touching = null;
+        for (const item of this.interactables) {
+          const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, item.x, item.y - 20);
+          if (dist < 90) {
+            touching = item;
+            break;
+          }
+        }
+        activeInteractable = touching;
+
+        const speed = 240;
+        if (this.keys.left.isDown) {
+          this.player.setVelocityX(-speed);
+          this.player.setFlipX(true);
+        } else if (this.keys.right.isDown) {
+          this.player.setVelocityX(speed);
+          this.player.setFlipX(false);
+        } else {
+          this.player.setVelocityX(0);
+        }
+
+        if (Phaser.Input.Keyboard.JustDown(this.keys.up) && this.player.body.blocked.down) {
+          this.player.setVelocityY(-480);
+        }
+
+        if (this.keys.down.isDown && this.player.body.blocked.down) {
+          this.player.setScale(1, 0.85);
+        } else {
+          this.player.setScale(1, 1);
+        }
+
+        if (activeInteractable) {
+          interactionHint.style.display = 'block';
+          interactionHint.textContent = `Press E to interact: ${activeInteractable.label}`;
+          if (Phaser.Input.Keyboard.JustDown(this.keys.interact)) {
+            openModal(activeInteractable.key);
+          }
+        } else {
+          interactionHint.style.display = 'none';
+        }
+      }
+    }
+
+    const config = {
+      type: Phaser.AUTO,
+      parent: 'game-container',
+      width: window.innerWidth,
+      height: window.innerHeight,
+      backgroundColor: '#7dd3fc',
+      pixelArt: true,
+      scale: {
+        mode: Phaser.Scale.RESIZE,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+      },
+      physics: {
+        default: 'arcade',
+        arcade: {
+          gravity: { y: 0 },
+          debug: false
+        }
+      },
+      scene: [PortfolioScene]
+    };
+
+    const game = new Phaser.Game(config);
+
+    window.addEventListener('resize', () => {
+      game.scale.resize(window.innerWidth, window.innerHeight);
+    });
+  </script>
 </body>
 </html>
