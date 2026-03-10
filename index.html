@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vincent Lili | Retro Portfolio World</title>
+  <title>Vincent Li | Retro Portfolio World</title>
   <style>
     :root {
       --panel: rgba(15, 23, 42, 0.92);
@@ -237,8 +237,6 @@
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
   <script>
     const PLATFORM_WIDTH = 53;
-    const PLATFORM_GAP_X = 180;
-    const PLATFORM_GAP_Y = 90;
 
     const portfolioContent = {
       about: {
@@ -504,21 +502,24 @@
       buildResponsiveLayout() {
         const groundY = this.worldHeight - 78;
         const centerX = this.worldWidth / 2;
+
+        const gapX = Phaser.Math.Clamp(this.worldWidth * 0.14, 120, 260);
+        const gapY = Phaser.Math.Clamp(this.worldHeight * 0.11, 60, 120);
         const baseY = Math.min(this.worldHeight - 165, this.worldHeight * 0.72);
 
         const level1Y = baseY;
-        const level2Y = baseY - PLATFORM_GAP_Y;
-        const level3Y = baseY - PLATFORM_GAP_Y * 2;
-        const level4Y = baseY - PLATFORM_GAP_Y * 3;
+        const level2Y = baseY - gapY;
+        const level3Y = baseY - gapY * 2;
+        const level4Y = baseY - gapY * 3;
 
         const points = {
-          about: centerX - PLATFORM_GAP_X / 2,
-          projects: centerX + PLATFORM_GAP_X / 2,
-          resume: centerX - PLATFORM_GAP_X / 2,
-          contact: centerX + PLATFORM_GAP_X / 2
+          about: centerX - gapX / 2,
+          projects: centerX + gapX / 2,
+          resume: centerX - gapX / 2,
+          contact: centerX + gapX / 2
         };
 
-        return { groundY, level1Y, level2Y, level3Y, level4Y, points };
+        return { groundY, level1Y, level2Y, level3Y, level4Y, points, gapX, gapY };
       }
 
       drawBackground() {
@@ -639,7 +640,7 @@
         this.player.setCollideWorldBounds(true);
         this.player.setBounce(0);
         this.player.setSize(18, 34).setOffset(11, 2);
-        this.player.body.setGravityY(2100);
+        this.player.body.setGravityY(Phaser.Math.Clamp(this.worldHeight * 2.35, 1700, 2600));
         this.physics.add.collider(this.player, this.platforms);
       }
 
@@ -683,7 +684,7 @@
         }
         activeInteractable = touching;
 
-        const speed = 260;
+        const speed = Phaser.Math.Clamp(this.worldWidth * 0.16, 210, 360);
 
         if (this.keys.left.isDown) {
           this.player.setVelocityX(-speed);
@@ -696,7 +697,8 @@
         }
 
         if (Phaser.Input.Keyboard.JustDown(this.keys.up) && this.player.body.blocked.down) {
-          this.player.setVelocityY(-760);
+          const jumpVelocity = -Phaser.Math.Clamp(this.layout.gapY * 8.2, 620, 980);
+          this.player.setVelocityY(jumpVelocity);
         }
 
         if (this.keys.down.isDown && this.player.body.blocked.down) {
