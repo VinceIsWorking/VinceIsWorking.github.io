@@ -439,10 +439,19 @@
 
       buildResponsiveLayout() {
         const groundY = this.worldHeight - 78;
-        const platformY = this.worldHeight - 245;
-        const points = [0.16, 0.39, 0.64, 0.86].map(ratio => Math.round(this.worldWidth * ratio));
+        const level1Y = this.worldHeight - 165;
+        const level2Y = this.worldHeight - 255;
+        const level3Y = this.worldHeight - 345;
+        const level4Y = this.worldHeight - 435;
 
-        return { groundY, platformY, points };
+        const points = {
+          about: Math.round(this.worldWidth * 0.28),
+          projects: Math.round(this.worldWidth * 0.58),
+          resume: Math.round(this.worldWidth * 0.42),
+          contact: Math.round(this.worldWidth * 0.72)
+        };
+
+        return { groundY, level1Y, level2Y, level3Y, level4Y, points };
       }
 
       drawBackground() {
@@ -470,7 +479,7 @@
           ground.refreshBody();
         }
 
-        const centeredShort = (centerX, y, count) => {
+        const centeredPlatform = (centerX, y, count = 2) => {
           const startX = centerX - (count * 48) / 2;
           for (let i = 0; i < count; i++) {
             const platform = this.platforms.create(startX + i * 48, y, 'platform').setOrigin(0, 0);
@@ -478,29 +487,18 @@
           }
         };
 
-        centeredShort(this.layout.points[1], this.layout.platformY, 2);
-        centeredShort(this.layout.points[2], this.layout.platformY, 2);
-        centeredShort(this.layout.points[3], this.layout.platformY, 2);
-
-        const stairBaseX = this.layout.points[0] + 60;
-        [
-          { x: stairBaseX, y: this.layout.groundY - 32 },
-          { x: stairBaseX + 48, y: this.layout.groundY - 64 },
-          { x: stairBaseX + 96, y: this.layout.groundY - 96 },
-          { x: stairBaseX + 144, y: this.layout.groundY - 128 },
-          { x: stairBaseX + 192, y: this.layout.platformY }
-        ].forEach(({ x, y }) => {
-          const step = this.platforms.create(x, y, 'platform').setOrigin(0, 0);
-          step.refreshBody();
-        });
+        centeredPlatform(this.layout.points.about, this.layout.level1Y, 2);
+        centeredPlatform(this.layout.points.projects, this.layout.level2Y, 2);
+        centeredPlatform(this.layout.points.resume, this.layout.level3Y, 2);
+        centeredPlatform(this.layout.points.contact, this.layout.level4Y, 2);
       }
 
       createDecorations() {
         const deco = [
-          { x: this.worldWidth * 0.08, y: this.layout.groundY - 8, color: 0x16a34a },
-          { x: this.worldWidth * 0.31, y: this.layout.groundY - 8, color: 0x15803d },
-          { x: this.worldWidth * 0.56, y: this.layout.groundY - 8, color: 0x16a34a },
-          { x: this.worldWidth * 0.76, y: this.layout.groundY - 8, color: 0x166534 }
+          { x: this.worldWidth * 0.10, y: this.layout.groundY - 8, color: 0x16a34a },
+          { x: this.worldWidth * 0.18, y: this.layout.groundY - 8, color: 0x15803d },
+          { x: this.worldWidth * 0.82, y: this.layout.groundY - 8, color: 0x16a34a },
+          { x: this.worldWidth * 0.90, y: this.layout.groundY - 8, color: 0x166534 }
         ];
 
         deco.forEach(({ x, y, color }) => {
@@ -511,10 +509,10 @@
 
       createInteractables() {
         this.interactables = [
-          { x: this.layout.points[0], y: this.layout.groundY - 2, key: 'about', sprite: 'profile', label: 'ABOUT ME' },
-          { x: this.layout.points[1], y: this.layout.platformY, key: 'projects', sprite: 'computer', label: 'PROJECTS' },
-          { x: this.layout.points[2], y: this.layout.platformY, key: 'contact', sprite: 'mail', label: 'CONTACT' },
-          { x: this.layout.points[3], y: this.layout.platformY, key: 'resume', sprite: 'resume_icon', label: 'RESUME' }
+          { x: this.layout.points.about, y: this.layout.level1Y, key: 'about', sprite: 'profile', label: 'ABOUT ME' },
+          { x: this.layout.points.projects, y: this.layout.level2Y, key: 'projects', sprite: 'computer', label: 'PROJECTS' },
+          { x: this.layout.points.resume, y: this.layout.level3Y, key: 'resume', sprite: 'resume_icon', label: 'RESUME' },
+          { x: this.layout.points.contact, y: this.layout.level4Y, key: 'contact', sprite: 'mail', label: 'CONTACT' }
         ];
 
         this.interactables.forEach(item => {
@@ -543,7 +541,7 @@
         const randomVariant = Phaser.Utils.Array.GetRandom(variants);
 
         this.player = this.physics.add.sprite(
-          Math.max(70, this.worldWidth * 0.06),
+          Math.max(70, this.worldWidth * 0.08),
           this.layout.groundY - 130,
           randomVariant
         );
@@ -551,7 +549,7 @@
         this.player.setCollideWorldBounds(true);
         this.player.setBounce(0);
         this.player.setSize(18, 34).setOffset(11, 2);
-        this.player.body.setGravityY(1100);
+        this.player.body.setGravityY(1500);
 
         this.physics.add.collider(this.player, this.platforms);
       }
@@ -609,7 +607,7 @@
         }
 
         if (Phaser.Input.Keyboard.JustDown(this.keys.up) && this.player.body.blocked.down) {
-          this.player.setVelocityY(-700);
+          this.player.setVelocityY(-760);
         }
 
         if (this.keys.down.isDown && this.player.body.blocked.down) {
