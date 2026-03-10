@@ -195,7 +195,7 @@
     <span><span class="kbd">D</span> Right</span>
     <span><span class="kbd">W</span> Jump</span>
     <span><span class="kbd">E</span> Interact</span>
-    <span><span class="kbd">Esc</span> Close</span>
+    <span><span class="kbd">Q</span> Close</span>
   </div>
 
   <div id="interaction-hint" class="pixel-ui">Press E to interact</div>
@@ -204,7 +204,7 @@
     <div id="modal">
       <div class="modal-header">
         <h2 class="modal-title" id="modal-title">Info</h2>
-        <button class="modal-close" id="close-modal">Close Esc</button>
+        <button class="modal-close" id="close-modal">Close Q</button>
       </div>
       <div class="modal-body" id="modal-body"></div>
     </div>
@@ -445,10 +445,10 @@
         const level4Y = this.worldHeight - 435;
 
         const points = {
-          about: Math.round(this.worldWidth * 0.28),
+          about: Math.round(this.worldWidth * 0.42),
           projects: Math.round(this.worldWidth * 0.58),
           resume: Math.round(this.worldWidth * 0.42),
-          contact: Math.round(this.worldWidth * 0.72)
+          contact: Math.round(this.worldWidth * 0.58)
         };
 
         return { groundY, level1Y, level2Y, level3Y, level4Y, points };
@@ -549,7 +549,7 @@
         this.player.setCollideWorldBounds(true);
         this.player.setBounce(0);
         this.player.setSize(18, 34).setOffset(11, 2);
-        this.player.body.setGravityY(1500);
+        this.player.body.setGravityY(1800);
 
         this.physics.add.collider(this.player, this.platforms);
       }
@@ -561,7 +561,7 @@
           up: Phaser.Input.Keyboard.KeyCodes.W,
           down: Phaser.Input.Keyboard.KeyCodes.S,
           interact: Phaser.Input.Keyboard.KeyCodes.E,
-          esc: Phaser.Input.Keyboard.KeyCodes.ESC
+          close: Phaser.Input.Keyboard.KeyCodes.Q
         });
       }
 
@@ -574,7 +574,7 @@
       }
 
       update() {
-        if (Phaser.Input.Keyboard.JustDown(this.keys.esc) && isModalOpen) {
+        if (Phaser.Input.Keyboard.JustDown(this.keys.close) && isModalOpen) {
           closeModal();
         }
 
