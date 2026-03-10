@@ -6,7 +6,9 @@
   <title>Vincent Li | Retro Portfolio World</title>
   <style>
     :root {
+      --bg: #0f172a;
       --panel: rgba(15, 23, 42, 0.92);
+      --border: #f8fafc;
       --accent: #facc15;
       --accent-2: #38bdf8;
       --text: #f8fafc;
@@ -17,7 +19,8 @@
       box-sizing: border-box;
     }
 
-    html, body {
+    html,
+    body {
       margin: 0;
       padding: 0;
       width: 100%;
@@ -56,8 +59,6 @@
       text-transform: uppercase;
       letter-spacing: 1px;
       max-width: calc(100vw - 24px);
-      flex-wrap: wrap;
-      justify-content: center;
     }
 
     #interaction-hint {
@@ -261,19 +262,7 @@
             <li>Demo / case study links can be added per project</li>
           </ul>
         `
-      },
-      skills: {
-        title: 'Skills',
-        body: `
-          <h3>Technical Skills</h3>
-          <div class="card-grid">
-            <div class="pixel-card"><strong>Game / Realtime</strong> Unreal Engine 5, Blueprint, C++, runtime import workflows</div>
-            <div class="pixel-card"><strong>Web</strong> HTML, CSS, JavaScript, Phaser 3</div>
-            <div class="pixel-card"><strong>Tools</strong> GitHub, Visual Studio, debugging, pipeline automation</div>
-            <div class="pixel-card"><strong>Product Thinking</strong> UX flow, prototyping, feature architecture, iteration</div>
-          </div>
-        `
-      },
+      },,
       contact: {
         title: 'Contact',
         body: `
@@ -283,6 +272,7 @@
             <li>LinkedIn: <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer">Add your LinkedIn URL</a></li>
             <li>GitHub: <a href="https://github.com/vincelsworking" target="_blank" rel="noopener noreferrer">github.com/vincelsworking</a></li>
           </ul>
+          <p>You can also place a QR code image here later if you want this section to feel more game-like.</p>
         `
       },
       resume: {
@@ -337,15 +327,13 @@
       }
 
       create() {
-        this.worldWidth = window.innerWidth;
-        this.worldHeight = window.innerHeight;
+        this.worldWidth = 3600;
+        this.worldHeight = 720;
 
         this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
         this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
         this.cameras.main.setBackgroundColor('#7dd3fc');
         this.cameras.main.roundPixels = true;
-
-        this.layout = this.buildResponsiveLayout();
 
         this.drawBackground();
         this.createPlatforms();
@@ -374,35 +362,22 @@
         g.fillRect(0, 12, 48, 4);
         g.generateTexture('platform', 48, 16);
 
-        const playerVariants = [
-          { key: 'player_red', body: 0xdc2626, head: 0xfde68a, leg: 0x1f2937 },
-          { key: 'player_blue', body: 0x2563eb, head: 0xfbbf24, leg: 0x1e293b },
-          { key: 'player_green', body: 0x16a34a, head: 0xfcd34d, leg: 0x334155 },
-          { key: 'player_purple', body: 0x7c3aed, head: 0xfde68a, leg: 0x111827 }
-        ];
-
-        playerVariants.forEach(variant => {
-          if (this.textures.exists(variant.key)) return;
-          g.clear();
-          g.fillStyle(variant.body, 1);
-          g.fillRect(10, 8, 20, 24);
-          g.fillStyle(variant.head, 1);
-          g.fillRect(14, 0, 12, 12);
-          g.fillStyle(variant.leg, 1);
-          g.fillRect(8, 30, 10, 6);
-          g.fillRect(22, 30, 10, 6);
-          g.generateTexture(variant.key, 40, 36);
-        });
+        g.clear();
+        g.fillStyle(0x2563eb, 1);
+        g.fillRect(10, 8, 20, 24);
+        g.fillStyle(0xfbbf24, 1);
+        g.fillRect(14, 0, 12, 12);
+        g.fillStyle(0x1e293b, 1);
+        g.fillRect(8, 30, 10, 6);
+        g.fillRect(22, 30, 10, 6);
+        g.generateTexture('player', 40, 36);
 
         g.clear();
-        g.fillStyle(0xb45309, 1);
-        g.fillRect(24, 28, 16, 28);
-        g.fillStyle(0x991b1b, 1);
-        g.fillRect(8, 16, 48, 24);
-        g.fillStyle(0xfef3c7, 1);
-        g.fillRect(14, 22, 12, 10);
-        g.fillRect(38, 22, 12, 10);
-        g.generateTexture('house', 64, 64);
+        g.fillStyle(0x0f172a, 1);
+        g.fillCircle(32, 18, 12);
+        g.fillStyle(0x60a5fa, 1);
+        g.fillRoundedRect(14, 32, 36, 20, 6);
+        g.generateTexture('profile', 64, 64);
 
         g.clear();
         g.fillStyle(0x475569, 1);
@@ -413,32 +388,33 @@
         g.fillRect(0, 42, 64, 14);
         g.generateTexture('computer', 64, 56);
 
+        
         g.clear();
-        g.fillStyle(0x78350f, 1);
-        g.fillRect(18, 18, 28, 28);
-        g.fillStyle(0xfacc15, 1);
-        g.fillRect(22, 22, 20, 8);
-        g.fillStyle(0x57534e, 1);
-        g.fillRect(24, 46, 16, 10);
-        g.generateTexture('bench', 64, 64);
+        g.fillStyle(0xf8fafc, 1);
+        g.fillRect(10, 18, 44, 28);
+        g.fillStyle(0x1d4ed8, 1);
+        g.fillRect(14, 22, 36, 20);
+        g.fillStyle(0xf8fafc, 1);
+        g.fillRect(18, 26, 28, 2);
+        g.fillRect(18, 31, 28, 2);
+        g.fillRect(18, 36, 20, 2);
+        g.fillStyle(0x94a3b8, 1);
+        g.fillRect(8, 16, 48, 32);
+        g.generateTexture('mail', 64, 64);
 
         g.clear();
-        g.fillStyle(0xdc2626, 1);
-        g.fillRect(18, 6, 28, 54);
-        g.fillStyle(0xfef2f2, 1);
-        g.fillRect(24, 14, 16, 22);
-        g.fillStyle(0x111827, 1);
-        g.fillRect(28, 40, 8, 10);
-        g.generateTexture('booth', 64, 64);
-
-        g.clear();
-        g.fillStyle(0xeab308, 1);
-        g.fillRect(10, 8, 44, 30);
-        g.fillStyle(0x92400e, 1);
-        g.fillRect(28, 38, 8, 20);
-        g.fillStyle(0x1f2937, 1);
-        g.fillRect(14, 12, 36, 22);
-        g.generateTexture('signboard', 64, 64);
+        g.fillStyle(0xf8fafc, 1);
+        g.fillRect(16, 8, 32, 46);
+        g.fillStyle(0xe2e8f0, 1);
+        g.fillRect(42, 8, 6, 10);
+        g.fillStyle(0x2563eb, 1);
+        g.fillRect(22, 18, 20, 3);
+        g.fillRect(22, 26, 20, 3);
+        g.fillRect(22, 34, 16, 3);
+        g.fillRect(22, 42, 18, 3);
+        g.fillStyle(0x94a3b8, 1);
+        g.fillRect(14, 6, 36, 50);
+        g.generateTexture('resume_icon', 64, 64);
 
         g.clear();
         g.fillStyle(0xffffff, 0.95);
@@ -450,53 +426,25 @@
         g.destroy();
       }
 
-      buildResponsiveLayout() {
-        const groundY = this.worldHeight - 78;
-        const lowPlatformY = this.worldHeight - 170;
-        const midPlatformY = this.worldHeight - 245;
-        const highPlatformY = this.worldHeight - 320;
-
-        const points = [0.14, 0.32, 0.5, 0.68, 0.86].map(ratio => Math.round(this.worldWidth * ratio));
-
-        return {
-          groundY,
-          lowPlatformY,
-          midPlatformY,
-          highPlatformY,
-          points
-        };
-      }
-
       drawBackground() {
-        const sky = this.add.rectangle(
-          this.worldWidth / 2,
-          this.worldHeight / 2,
-          this.worldWidth,
-          this.worldHeight,
-          0x7dd3fc
-        );
+        const sky = this.add.rectangle(this.worldWidth / 2, this.worldHeight / 2, this.worldWidth, this.worldHeight, 0x7dd3fc);
         sky.setScrollFactor(0);
 
-        const cloudCount = Math.max(4, Math.floor(this.worldWidth / 180));
-        for (let i = 0; i < cloudCount; i++) {
-          this.add.image(
-            80 + i * (this.worldWidth / cloudCount),
-            70 + (i % 3) * 28,
-            'cloud'
-          ).setAlpha(0.8).setScrollFactor(0);
+        for (let i = 0; i < 14; i++) {
+          const cloud = this.add.image(220 + i * 260, 90 + (i % 3) * 35, 'cloud').setAlpha(0.8);
+          cloud.setScrollFactor(0.25);
         }
 
-        const hillCount = Math.max(4, Math.floor(this.worldWidth / 160));
-        for (let i = 0; i < hillCount; i++) {
-          const hill = this.add.ellipse(
-            i * (this.worldWidth / hillCount) + 80,
-            this.worldHeight - 60,
-            220,
-            120,
-            0x4ade80
-          );
+        for (let i = 0; i < 18; i++) {
+          const x = i * 220;
+          this.add.rectangle(x + 100, 450, 180, 180, 0x93c5fd).setOrigin(0.5, 1).setScrollFactor(0.45);
+          this.add.rectangle(x + 140, 450, 220, 120, 0x60a5fa).setOrigin(0.5, 1).setScrollFactor(0.55);
+        }
+
+        for (let i = 0; i < 22; i++) {
+          const hill = this.add.ellipse(i * 180 + 60, 620, 260, 150, 0x4ade80);
           hill.setOrigin(0.5, 1);
-          hill.setScrollFactor(0);
+          hill.setScrollFactor(0.7);
         }
       }
 
@@ -504,40 +452,31 @@
         this.platforms = this.physics.add.staticGroup();
 
         for (let x = 0; x < this.worldWidth; x += 64) {
-          const ground = this.platforms.create(x, this.layout.groundY, 'ground').setOrigin(0, 0);
+          const ground = this.platforms.create(x, 690, 'ground').setOrigin(0, 0);
           ground.refreshBody();
         }
 
-        const centeredShort = (centerX, y, count) => {
-          const startX = centerX - (count * 48) / 2;
+        const ledges = [
+          { x: 720, y: 546, count: 3 },
+          { x: 1980, y: 546, count: 3 },
+          { x: 3180, y: 546, count: 4 }
+        ];
+
+        ledges.forEach(({ x, y, count }) => {
           for (let i = 0; i < count; i++) {
-            const platform = this.platforms.create(startX + i * 48, y, 'platform').setOrigin(0, 0);
+            const platform = this.platforms.create(x + i * 48, y, 'platform').setOrigin(0, 0);
             platform.refreshBody();
           }
-        };
-
-        centeredShort(this.layout.points[1], this.layout.lowPlatformY, 2);
-        centeredShort(this.layout.points[2], this.layout.highPlatformY, 2);
-        centeredShort(this.layout.points[3], this.layout.midPlatformY, 2);
-        centeredShort(this.layout.points[4], this.layout.lowPlatformY, 2);
-
-        const stairBaseX = this.layout.points[0] + 70;
-        [
-          { x: stairBaseX, y: this.layout.groundY - 32 },
-          { x: stairBaseX + 48, y: this.layout.groundY - 64 },
-          { x: stairBaseX + 96, y: this.layout.groundY - 96 }
-        ].forEach(({ x, y }) => {
-          const step = this.platforms.create(x, y, 'platform').setOrigin(0, 0);
-          step.refreshBody();
         });
+
       }
 
       createDecorations() {
         const deco = [
-          { x: this.worldWidth * 0.08, y: this.layout.groundY - 8, color: 0x16a34a },
-          { x: this.worldWidth * 0.27, y: this.layout.groundY - 8, color: 0x15803d },
-          { x: this.worldWidth * 0.58, y: this.layout.groundY - 8, color: 0x16a34a },
-          { x: this.worldWidth * 0.78, y: this.layout.groundY - 8, color: 0x166534 }
+          { x: 180, y: 626, color: 0x16a34a },
+          { x: 860, y: 626, color: 0x15803d },
+                    { x: 2210, y: 626, color: 0x166534 },
+          { x: 3010, y: 626, color: 0x15803d }
         ];
 
         deco.forEach(({ x, y, color }) => {
@@ -548,11 +487,10 @@
 
       createInteractables() {
         this.interactables = [
-          { x: this.layout.points[0], y: this.layout.groundY - 2, key: 'about', sprite: 'house', label: 'ABOUT ME' },
-          { x: this.layout.points[1], y: this.layout.lowPlatformY, key: 'projects', sprite: 'computer', label: 'PROJECTS' },
-          { x: this.layout.points[2], y: this.layout.highPlatformY, key: 'skills', sprite: 'bench', label: 'SKILLS' },
-          { x: this.layout.points[3], y: this.layout.midPlatformY, key: 'contact', sprite: 'booth', label: 'CONTACT' },
-          { x: this.layout.points[4], y: this.layout.lowPlatformY, key: 'resume', sprite: 'signboard', label: 'RESUME' }
+          { x: 380, y: 626, key: 'about', sprite: 'profile', label: 'ABOUT ME' },
+          { x: 980, y: 612, key: 'projects', sprite: 'computer', label: 'PROJECTS' },
+          { x: 2500, y: 612, key: 'contact', sprite: 'mail', label: 'CONTACT' },
+          { x: 3300, y: 612, key: 'resume', sprite: 'resume_icon', label: 'RESUME' }
         ];
 
         this.interactables.forEach(item => {
@@ -577,21 +515,14 @@
       }
 
       createPlayer() {
-        const variants = ['player_red', 'player_blue', 'player_green', 'player_purple'];
-        const randomVariant = Phaser.Utils.Array.GetRandom(variants);
-
-        this.player = this.physics.add.sprite(
-          Math.max(70, this.worldWidth * 0.06),
-          this.layout.groundY - 130,
-          randomVariant
-        );
-
+        this.player = this.physics.add.sprite(100, 560, 'player');
         this.player.setCollideWorldBounds(true);
         this.player.setBounce(0);
         this.player.setSize(18, 34).setOffset(11, 2);
-        this.player.body.setGravityY(1100);
-
+        this.player.body.setGravityY(900);
         this.physics.add.collider(this.player, this.platforms);
+        this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
+        this.cameras.main.setDeadzone(180, 120);
       }
 
       createControls() {
@@ -627,15 +558,14 @@
         let touching = null;
         for (const item of this.interactables) {
           const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, item.x, item.y - 20);
-          if (dist < 95) {
+          if (dist < 90) {
             touching = item;
             break;
           }
         }
         activeInteractable = touching;
 
-        const speed = Math.max(220, Math.min(320, this.worldWidth * 0.2));
-
+        const speed = 240;
         if (this.keys.left.isDown) {
           this.player.setVelocityX(-speed);
           this.player.setFlipX(true);
@@ -647,7 +577,7 @@
         }
 
         if (Phaser.Input.Keyboard.JustDown(this.keys.up) && this.player.body.blocked.down) {
-          this.player.setVelocityY(-700);
+          this.player.setVelocityY(-480);
         }
 
         if (this.keys.down.isDown && this.player.body.blocked.down) {
@@ -693,8 +623,6 @@
 
     window.addEventListener('resize', () => {
       game.scale.resize(window.innerWidth, window.innerHeight);
-      game.scene.stop('PortfolioScene');
-      game.scene.start('PortfolioScene');
     });
   </script>
 </body>
