@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vincent Li | Retro Portfolio World</title>
+  <title>Vincent Liiiii | Retro Portfolio World</title>
   <style>
     :root {
       --panel: rgba(15, 23, 42, 0.92);
@@ -504,7 +504,7 @@
         const centerX = this.worldWidth / 2;
 
         const gapX = Phaser.Math.Clamp(this.worldWidth * 0.14, 120, 260);
-        const gapY = Phaser.Math.Clamp(this.worldHeight * 0.11, 60, 120);
+        const gapY = Phaser.Math.Clamp(this.worldHeight * 0.085, 42, 82);
         const baseY = Math.min(this.worldHeight - 165, this.worldHeight * 0.72);
 
         const level1Y = baseY;
@@ -640,7 +640,7 @@
         this.player.setCollideWorldBounds(true);
         this.player.setBounce(0);
         this.player.setSize(18, 34).setOffset(11, 2);
-        this.player.body.setGravityY(Phaser.Math.Clamp(this.worldHeight * 2.35, 1700, 2600));
+        this.player.body.setGravityY(Phaser.Math.Clamp(this.worldHeight * 2.0, 1500, 2200));
         this.physics.add.collider(this.player, this.platforms);
       }
 
@@ -697,7 +697,7 @@
         }
 
         if (Phaser.Input.Keyboard.JustDown(this.keys.up) && this.player.body.blocked.down) {
-          const jumpVelocity = -Phaser.Math.Clamp(this.layout.gapY * 8.2, 620, 980);
+          const jumpVelocity = -Phaser.Math.Clamp(this.layout.gapY * 9.6, 700, 980);
           this.player.setVelocityY(jumpVelocity);
         }
 
