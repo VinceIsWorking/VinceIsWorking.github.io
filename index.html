@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vincent Li | Retro Portfolio World</title>
+  <title>Vincent Liiii | Retro Portfolio World</title>
   <style>
     :root {
       --panel: rgba(15, 23, 42, 0.92);
@@ -304,6 +304,7 @@
     let activeInteractable = null;
     let isModalOpen = false;
     let currentWeatherTheme = 'cloudy';
+    let weatherLoadedOnce = false;
 
     function openModal(key) {
       const item = portfolioContent[key];
@@ -384,11 +385,14 @@
         this.createOverlapZones();
         this.createSigns();
 
-        fetchMelbourneWeatherTheme().then(() => {
-          this.scene.restart();
-        }).catch(() => {
-          // keep current default theme
-        });
+        if (!weatherLoadedOnce) {
+          weatherLoadedOnce = true;
+          fetchMelbourneWeatherTheme().then(() => {
+            this.scene.restart();
+          }).catch(() => {
+            // keep current default theme
+          });
+        }
       }
 
       createTextures() {
@@ -775,6 +779,7 @@
 
     window.addEventListener('resize', () => {
       game.scale.resize(window.innerWidth, window.innerHeight);
+      weatherLoadedOnce = false;
       game.scene.stop('PortfolioScene');
       game.scene.start('PortfolioScene');
     });
