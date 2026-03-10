@@ -334,41 +334,20 @@
         const code = data?.current?.weather_code;
 
         const codeMap = {
-          0: 'sunny',
-          1: 'sunny',
-          2: 'cloudy',
-          3: 'cloudy',
-          45: 'cloudy',
-          48: 'cloudy',
-          51: 'rain',
-          53: 'rain',
-          55: 'rain',
-          56: 'rain',
-          57: 'rain',
-          61: 'rain',
-          63: 'rain',
-          65: 'rain',
-          66: 'rain',
-          67: 'rain',
-          71: 'snow',
-          73: 'snow',
-          75: 'snow',
-          77: 'snow',
-          80: 'rain',
-          81: 'rain',
-          82: 'rain',
-          85: 'snow',
-          86: 'snow',
-          95: 'rain',
-          96: 'snow',
-          99: 'snow'
+          0: 'sunny', 1: 'sunny', 2: 'cloudy', 3: 'cloudy', 45: 'cloudy', 48: 'cloudy',
+          51: 'rain', 53: 'rain', 55: 'rain', 56: 'rain', 57: 'rain', 61: 'rain', 63: 'rain', 65: 'rain', 66: 'rain', 67: 'rain',
+          71: 'snow', 73: 'snow', 75: 'snow', 77: 'snow', 80: 'rain', 81: 'rain', 82: 'rain', 85: 'snow', 86: 'snow',
+          95: 'rain', 96: 'snow', 99: 'snow'
         };
 
-        currentWeatherTheme = codeMap[code] || 'cloudy';
+        const nextTheme = codeMap[code] || 'cloudy';
+        currentWeatherTheme = nextTheme;
         weatherBadge.textContent = `Weather: ${currentWeatherTheme}`;
+        return nextTheme;
       } catch (error) {
         currentWeatherTheme = normalizeWeatherTheme('partly sunny');
         weatherBadge.textContent = `Weather: ${currentWeatherTheme}`;
+        return currentWeatherTheme;
       }
     }
 
@@ -386,7 +365,7 @@
         this.createTextures();
       }
 
-      async create() {
+      create() {
         this.worldWidth = window.innerWidth;
         this.worldHeight = window.innerHeight;
 
@@ -395,7 +374,6 @@
         this.cameras.main.roundPixels = true;
 
         this.layout = this.buildResponsiveLayout();
-        await fetchMelbourneWeatherTheme();
 
         this.drawBackground();
         this.createPlatforms();
@@ -405,6 +383,12 @@
         this.createControls();
         this.createOverlapZones();
         this.createSigns();
+
+        fetchMelbourneWeatherTheme().then(() => {
+          this.scene.restart();
+        }).catch(() => {
+          // keep current default theme
+        });
       }
 
       createTextures() {
