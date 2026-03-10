@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vincent Li | Retro Portfolio World</title>
+  <title>Vincent Liiii | Retro Portfolio World</title>
   <style>
     :root {
       --panel: rgba(15, 23, 42, 0.92);
@@ -58,6 +58,15 @@
       justify-content: center;
     }
 
+    #interaction-hint {
+      bottom: 28px;
+      display: none;
+      background: rgba(15, 23, 42, 0.9);
+      color: #fff;
+      padding: 12px 18px;
+      font-size: 15px;
+    }
+
     #weather-badge {
       top: 84px;
       background: rgba(15, 23, 42, 0.88);
@@ -76,15 +85,6 @@
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 1px;
-    }
-
-    #interaction-hint {
-      bottom: 28px;
-      display: none;
-      background: rgba(15, 23, 42, 0.9);
-      color: #fff;
-      padding: 12px 18px;
-      font-size: 15px;
     }
 
     #modal-overlay {
@@ -154,13 +154,9 @@
     }
 
     .modal-body p,
-    .modal-body li {
-      color: var(--muted);
-    }
+    .modal-body li { color: var(--muted); }
 
-    .modal-body ul {
-      padding-left: 20px;
-    }
+    .modal-body ul { padding-left: 20px; }
 
     .card-grid {
       display: grid;
@@ -206,16 +202,8 @@
         gap: 8px;
       }
 
-      #weather-badge {
-        top: 96px;
-        font-size: 11px;
-      }
-
-      #loading-badge {
-        top: 138px;
-        font-size: 10px;
-      }
-
+      #weather-badge { top: 96px; font-size: 11px; }
+      #loading-badge { top: 138px; font-size: 10px; }
       .modal-title { font-size: 18px; }
       .modal-body { font-size: 14px; }
     }
@@ -248,9 +236,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
   <script>
-    const PLATFORM_TILE_WIDTH = 53;
-    const PLATFORM_TILE_HEIGHT = 16;
-    const PLATFORM_TILE_COUNT = 2;
+    const PLATFORM_WIDTH = 53;
 
     const portfolioContent = {
       about: {
@@ -261,8 +247,8 @@
           <p>This portfolio is designed like a side-scrolling game so visitors can explore my work instead of clicking through a traditional menu.</p>
           <div class="card-grid">
             <div class="pixel-card"><strong>Base</strong> Melbourne, Australia</div>
-            <div class="pixel-card"><strong>Background</strong> Software / interactive development</div>
-            <div class="pixel-card"><strong>Style</strong> Technical + creative + product-minded</div>
+            <div class="pixel-card"><strong>Email</strong> <a href="mailto:vincentlee264@gmail.com">vincentlee264@gmail.com</a></div>
+            <div class="pixel-card"><strong>LinkedIn</strong> <a href="https://www.linkedin.com/in/august264/" target="_blank" rel="noopener noreferrer">linkedin.com/in/august264</a></div>
           </div>
         `
       },
@@ -271,14 +257,14 @@
         body: `
           <h3>Featured Work</h3>
           <div class="card-grid">
-            <div class="pixel-card"><strong>Aspectu</strong> UE5 standalone application for construction-stage simulation, model import, XML scheduling, timeline playback, and video export.</div>
+            <div class="pixel-card"><strong>Aspectu 4D</strong> 4D visualisation platform for project teams, combining time and space to turn static project data into interactive models with clearer planning, coordination, risk visibility, and decision-making. <br><a href="https://www.aspectu4d.com/" target="_blank" rel="noopener noreferrer">aspectu4d.com</a></div>
             <div class="pixel-card"><strong>ModelTree</strong> TreeView-driven model structure and runtime data handling system for large imported scene hierarchies.</div>
             <div class="pixel-card"><strong>ProjectK</strong> Dance learning / motion comparison concept using reference video + user video analysis.</div>
           </div>
-          <p style="margin-top:16px;">Add your real links here:</p>
+          <p style="margin-top:16px;">Project links:</p>
           <ul>
-            <li>GitHub: <a href="https://github.com/vincelsworking" target="_blank" rel="noopener noreferrer">github.com/vincelsworking</a></li>
-            <li>Demo / case study links can be added per project</li>
+            <li>Aspectu 4D: <a href="https://www.aspectu4d.com/" target="_blank" rel="noopener noreferrer">aspectu4d.com</a></li>
+            <li>More project case studies can be added here later</li>
           </ul>
         `
       },
@@ -287,9 +273,8 @@
         body: `
           <h3>Let's Connect</h3>
           <ul>
-            <li>Email: <a href="mailto:your-email@example.com">your-email@example.com</a></li>
-            <li>LinkedIn: <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer">Add your LinkedIn URL</a></li>
-            <li>GitHub: <a href="https://github.com/vincelsworking" target="_blank" rel="noopener noreferrer">github.com/vincelsworking</a></li>
+            <li>Email: <a href="mailto:vincentlee264@gmail.com">vincentlee264@gmail.com</a></li>
+            <li>LinkedIn: <a href="https://www.linkedin.com/in/august264/" target="_blank" rel="noopener noreferrer">linkedin.com/in/august264</a></li>
           </ul>
         `
       },
@@ -357,7 +342,6 @@
       } catch (error) {
         currentWeatherTheme = normalizeWeatherTheme('partly sunny');
       }
-
       weatherBadge.textContent = `Weather: ${currentWeatherTheme}`;
       return currentWeatherTheme;
     }
@@ -411,10 +395,10 @@
         if (!this.textures.exists('platform')) {
           g.clear();
           g.fillStyle(0xf59e0b, 1);
-          g.fillRect(0, 0, PLATFORM_TILE_WIDTH, PLATFORM_TILE_HEIGHT);
+          g.fillRect(0, 0, PLATFORM_WIDTH, 16);
           g.fillStyle(0x92400e, 1);
-          g.fillRect(0, 12, PLATFORM_TILE_WIDTH, 4);
-          g.generateTexture('platform', PLATFORM_TILE_WIDTH, PLATFORM_TILE_HEIGHT);
+          g.fillRect(0, 12, PLATFORM_WIDTH, 4);
+          g.generateTexture('platform', PLATFORM_WIDTH, 16);
         }
 
         const playerVariants = [
@@ -516,52 +500,25 @@
 
       buildResponsiveLayout() {
         const groundY = this.worldHeight - 78;
-
-        const moveSpeed = Phaser.Math.Clamp(this.worldWidth * 0.16, 210, 360);
-        const gravityY = Phaser.Math.Clamp(this.worldHeight * 1.9, 1450, 2100);
-
-        // 用屏幕高度决定基础跳跃力度
-        const jumpVelocity = -Phaser.Math.Clamp(this.worldHeight * 0.92, 740, 980);
-
-        // 物理上能达到的理论最高点
-        const theoreticalJumpHeight = (jumpVelocity * jumpVelocity) / (2 * gravityY);
-
-        // 只使用可达高度的 68%，留出容错，让关卡稳定可跳
-        const safeVerticalStep = Phaser.Math.Clamp(theoreticalJumpHeight * 0.68, 44, 92);
-
-        // 横向间距也按屏幕缩放，但限制在合理范围内
-        const safeHorizontalStep = Phaser.Math.Clamp(this.worldWidth * 0.16, 120, 220);
-
-        // 最低平台要保证从地面可跳上
-        const firstPlatformRise = Phaser.Math.Clamp(theoreticalJumpHeight * 0.62, 70, 130);
-
-        const level1Y = groundY - firstPlatformRise;
-        const level2Y = level1Y - safeVerticalStep;
-        const level3Y = level2Y - safeVerticalStep;
-        const level4Y = level3Y - safeVerticalStep;
-
         const centerX = this.worldWidth / 2;
+
+        const gapX = Phaser.Math.Clamp(this.worldWidth * 0.14, 120, 260);
+        const gapY = Phaser.Math.Clamp(this.worldHeight * 0.075, 38, 72);
+        const baseY = Math.min(this.worldHeight - 120, this.worldHeight * 0.82);
+
+        const level1Y = baseY;
+        const level2Y = baseY - gapY;
+        const level3Y = baseY - gapY * 2;
+        const level4Y = baseY - gapY * 3;
+
         const points = {
-          about: centerX - safeHorizontalStep / 2,
-          projects: centerX + safeHorizontalStep / 2,
-          resume: centerX - safeHorizontalStep / 2,
-          contact: centerX + safeHorizontalStep / 2
+          about: centerX - gapX / 2,
+          projects: centerX + gapX / 2,
+          resume: centerX - gapX / 2,
+          contact: centerX + gapX / 2
         };
 
-        return {
-          groundY,
-          level1Y,
-          level2Y,
-          level3Y,
-          level4Y,
-          points,
-          moveSpeed,
-          gravityY,
-          jumpVelocity,
-          theoreticalJumpHeight,
-          safeVerticalStep,
-          safeHorizontalStep
-        };
+        return { groundY, level1Y, level2Y, level3Y, level4Y, points, gapX, gapY };
       }
 
       drawBackground() {
@@ -584,44 +541,26 @@
 
         const cloudCount = currentWeatherTheme === 'sunny' ? 4 : 7;
         for (let i = 0; i < cloudCount; i++) {
-          this.add.image(
-            80 + i * (this.worldWidth / cloudCount),
-            70 + (i % 3) * 28,
-            'cloud'
-          ).setAlpha(style.cloudAlpha).setScrollFactor(0);
+          this.add.image(80 + i * (this.worldWidth / cloudCount), 70 + (i % 3) * 28, 'cloud').setAlpha(style.cloudAlpha).setScrollFactor(0);
         }
 
         const hillCount = Math.max(4, Math.floor(this.worldWidth / 160));
         for (let i = 0; i < hillCount; i++) {
-          const hill = this.add.ellipse(
-            i * (this.worldWidth / hillCount) + 80,
-            this.worldHeight - 60,
-            220,
-            120,
-            style.hill
-          );
+          const hill = this.add.ellipse(i * (this.worldWidth / hillCount) + 80, this.worldHeight - 60, 220, 120, style.hill);
           hill.setOrigin(0.5, 1);
           hill.setScrollFactor(0);
         }
 
         if (currentWeatherTheme === 'rain') {
           for (let i = 0; i < 120; i++) {
-            const drop = this.add.image(
-              Phaser.Math.Between(0, this.worldWidth),
-              Phaser.Math.Between(0, this.worldHeight - 120),
-              'raindrop'
-            );
+            const drop = this.add.image(Phaser.Math.Between(0, this.worldWidth), Phaser.Math.Between(0, this.worldHeight - 120), 'raindrop');
             drop.setAlpha(0.75);
           }
         }
 
         if (currentWeatherTheme === 'snow') {
           for (let i = 0; i < 70; i++) {
-            const flake = this.add.image(
-              Phaser.Math.Between(0, this.worldWidth),
-              Phaser.Math.Between(0, this.worldHeight - 120),
-              'snowflake'
-            );
+            const flake = this.add.image(Phaser.Math.Between(0, this.worldWidth), Phaser.Math.Between(0, this.worldHeight - 120), 'snowflake');
             flake.setAlpha(0.85);
           }
         }
@@ -635,24 +574,18 @@
           ground.refreshBody();
         }
 
-        const centeredPlatform = (centerX, y, count = PLATFORM_TILE_COUNT) => {
-          const totalWidth = count * PLATFORM_TILE_WIDTH;
-          const startX = centerX - totalWidth / 2;
-
+        const centeredPlatform = (centerX, y, count = 2) => {
+          const startX = centerX - (count * PLATFORM_WIDTH) / 2;
           for (let i = 0; i < count; i++) {
-            const platform = this.platforms.create(
-              startX + i * PLATFORM_TILE_WIDTH,
-              y,
-              'platform'
-            ).setOrigin(0, 0);
+            const platform = this.platforms.create(startX + i * PLATFORM_WIDTH, y, 'platform').setOrigin(0, 0);
             platform.refreshBody();
           }
         };
 
-        centeredPlatform(this.layout.points.about, this.layout.level1Y);
-        centeredPlatform(this.layout.points.projects, this.layout.level2Y);
-        centeredPlatform(this.layout.points.resume, this.layout.level3Y);
-        centeredPlatform(this.layout.points.contact, this.layout.level4Y);
+        centeredPlatform(this.layout.points.about, this.layout.level1Y, 2);
+        centeredPlatform(this.layout.points.projects, this.layout.level2Y, 2);
+        centeredPlatform(this.layout.points.resume, this.layout.level3Y, 2);
+        centeredPlatform(this.layout.points.contact, this.layout.level4Y, 2);
       }
 
       createDecorations() {
@@ -702,17 +635,11 @@
         const variants = ['player_red', 'player_blue', 'player_green', 'player_purple'];
         const randomVariant = Phaser.Utils.Array.GetRandom(variants);
 
-        this.player = this.physics.add.sprite(
-          Math.max(70, this.worldWidth * 0.08),
-          this.layout.groundY - 130,
-          randomVariant
-        );
-
+        this.player = this.physics.add.sprite(Math.max(70, this.worldWidth * 0.08), this.layout.groundY - 130, randomVariant);
         this.player.setCollideWorldBounds(true);
         this.player.setBounce(0);
         this.player.setSize(18, 34).setOffset(11, 2);
-        this.player.body.setGravityY(this.layout.gravityY);
-
+        this.player.body.setGravityY(Phaser.Math.Clamp(this.worldHeight * 1.9, 1450, 2100));
         this.physics.add.collider(this.player, this.platforms);
       }
 
@@ -756,7 +683,7 @@
         }
         activeInteractable = touching;
 
-        const speed = this.layout.moveSpeed;
+        const speed = Phaser.Math.Clamp(this.worldWidth * 0.16, 210, 360);
 
         if (this.keys.left.isDown) {
           this.player.setVelocityX(-speed);
@@ -769,7 +696,8 @@
         }
 
         if (Phaser.Input.Keyboard.JustDown(this.keys.up) && this.player.body.blocked.down) {
-          this.player.setVelocityY(this.layout.jumpVelocity);
+          const jumpVelocity = -Phaser.Math.Clamp(this.layout.gapY * 10.2, 740, 980);
+          this.player.setVelocityY(jumpVelocity);
         }
 
         if (this.keys.down.isDown && this.player.body.blocked.down) {
