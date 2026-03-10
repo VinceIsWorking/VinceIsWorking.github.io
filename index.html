@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vincent Liiii | Retro Portfolio World</title>
+  <title>Vincent Li | Retro Portfolio World</title>
   <style>
     :root {
       --panel: rgba(15, 23, 42, 0.92);
@@ -255,19 +255,9 @@
       projects: {
         title: 'Projects',
         body: `
-          <h3>Featured Work</h3>
+          <h3>Selected Project</h3>
           <div class="card-grid">
-            <div class="pixel-card"><strong>Aspectu 4D</strong> 4D visualisation platform for project teams, combining time and space to turn static project data into interactive models with clearer planning, coordination, risk visibility, and decision-making. <br><a href="https://www.aspectu4d.com/" target="_blank" rel="noopener noreferrer">aspectu4d.com</a></div>
-            <div class="pixel-card"><strong>ModelTree</strong> TreeView-driven model structure and runtime data handling system for large imported scene hierarchies.</div>
-            <div class="pixel-card"><strong>ProjectK</strong> Dance learning / motion comparison concept using reference video + user video analysis.</div>
-          </div>
-          <p style="margin-top:16px;">Project links:</p>
-          <ul>
-            <li>Aspectu 4D: <a href="https://www.aspectu4d.com/" target="_blank" rel="noopener noreferrer">aspectu4d.com</a></li>
-            <li>More project case studies can be added here later</li>
-          </ul>
-        `
-      },
+            <div class="pixel-card" style="border-color: rgba(250, 204, 21, 0.45); background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)); box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.08) in
       contact: {
         title: 'Contact',
         body: `
@@ -750,7 +740,51 @@
 
     window.addEventListener('resize', () => {
       if (!game) return;
-      game.scale.resize(window.innerWidth, window.innerHeight);
+
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+
+      game.scale.resize(w, h);
+
+      const scene = game.scene.getScene('PortfolioScene');
+      if (!scene) return;
+
+      // update world size
+      scene.worldWidth = w;
+      scene.worldHeight = h;
+
+      scene.physics.world.setBounds(0, 0, w, h);
+      scene.cameras.main.setBounds(0, 0, w, h);
+
+      // rebuild layout
+      scene.layout = scene.buildResponsiveLayout();
+
+      // reposition ground
+      scene.platforms.children.iterate((platform) => {
+        platform.destroy();
+      });
+
+      scene.createPlatforms();
+
+      // reposition interactables
+      scene.interactables.forEach(obj => {
+        if (obj.gameObject) obj.gameObject.destroy();
+        if (obj.zone) obj.zone.destroy();
+      });
+
+      scene.createInteractables();
+      scene.createSigns();
+
+      // reposition player safely above ground
+      if (scene.player) {
+        scene.player.setPosition(
+          Math.max(70, w * 0.08),
+          scene.layout.groundY - 130
+        );
+      }
+
+      scene.drawBackground();
+    });
       game.scene.stop('PortfolioScene');
       game.scene.start('PortfolioScene');
     });
