@@ -2,6 +2,12 @@ const PLATFORM_TILE_WIDTH = 53;
 const PLATFORM_TILE_HEIGHT = 16;
 const PLATFORM_TILE_COUNT = 2;
 
+let activeInteractable = null;
+let isModalOpen = false;
+let currentWeatherTheme = 'cloudy';
+let duolingoStreak = 'Loading...';
+let game = null;
+
 const portfolioContent = {
   about: {
     title: 'About Me',
@@ -67,11 +73,16 @@ const interactionHint = document.getElementById('interaction-hint');
 const weatherBadge = document.getElementById('weather-badge');
 const loadingBadge = document.getElementById('loading-badge');
 
-let activeInteractable = null;
-let isModalOpen = false;
-let currentWeatherTheme = 'cloudy';
-let duolingoStreak = 'Loading...';
-let game = null;
+function updateAboutDuolingoStreak(newText) {
+  duolingoStreak = newText;
+  portfolioContent.about.body = portfolioContent.about.body.replace(
+    /<span id="duolingo-streak" class="pixel-streak">.*?<\/span>/,
+    `<span id="duolingo-streak" class="pixel-streak">${duolingoStreak}</span>`
+  );
+
+  const streakNode = document.getElementById('duolingo-streak');
+  if (streakNode) streakNode.textContent = duolingoStreak;
+}
 
 function openModal(key) {
   const item = portfolioContent[key];
@@ -112,20 +123,25 @@ function normalizeWeatherTheme(text) {
 async function fetchMelbourneWeatherTheme() {
   const fallback = () => {
     currentWeatherTheme = normalizeWeatherTheme('partly sunny');
-    weatherBadge.textContent = `Weather: ${currentWeatherTheme}`;
+    if (weatherBadge) weatherBadge.textContent = `Weather: ${currentWeatherTheme}`;
     return currentWeatherTheme;
   };
 
+  let timer;
+
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3500);
+    timer = setTimeout(() => controller.abort(), 3000);
+
     const response = await fetch(
       'https://api.open-meteo.com/v1/forecast?latitude=-37.8136&longitude=144.9631&current=weather_code,is_day&timezone=Australia%2FMelbourne',
       { signal: controller.signal }
     );
+
     clearTimeout(timer);
 
     if (!response.ok) return fallback();
+
     const data = await response.json();
     const code = data?.current?.weather_code;
     const codeMap = {
@@ -158,51 +174,52 @@ async function fetchMelbourneWeatherTheme() {
       96: 'snow',
       99: 'snow'
     };
+
     currentWeatherTheme = codeMap[code] || 'cloudy';
-    weatherBadge.textContent = `Weather: ${currentWeatherTheme}`;
+    if (weatherBadge) weatherBadge.textContent = `Weather: ${currentWeatherTheme}`;
+
+    if (game && game.scene.keys['PortfolioScene']) {
+      game.scene.stop('PortfolioScene');
+      game.scene.start('PortfolioScene');
+    }
+
     return currentWeatherTheme;
   } catch (error) {
+    clearTimeout(timer);
     return fallback();
   }
 }
 
 async function fetchDuolingoStreak() {
-  const fallback = () => {
-    duolingoStreak = 'Streak unavailable';
-    const streakNode = document.getElementById('duolingo-streak');
-    if (streakNode) streakNode.textContent = duolingoStreak;
-    return duolingoStreak;
-  };
+  let timer;
 
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3500);
+    timer = setTimeout(() => controller.abort(), 3000);
+
     const response = await fetch(
       'https://www.duolingo.com/2017-06-30/users?username=VincentSaiko',
       { signal: controller.signal }
     );
+
     clearTimeout(timer);
 
-    if (!response.ok) return fallback();
+    if (!response.ok) {
+      updateAboutDuolingoStreak('Streak unavailable');
+      return;
+    }
 
     const data = await response.json();
     const streak = data?.users?.[0]?.streak;
 
-    if (typeof streak !== 'number') return fallback();
-
-    duolingoStreak = `🔥 ${streak} day streak`;
-    portfolioContent.about.body = portfolioContent.about.body.replace(
-      /<span id="duolingo-streak" class="pixel-streak">.*?<\/span>/,
-      `<span id="duolingo-streak" class="pixel-streak">${duolingoStreak}</span>`
-    );
-
-    const streakNode = document.getElementById('duolingo-streak');
-    if (streakNode) streakNode.textContent = duolingoStreak;
-
-    return duolingoStreak;
+    if (typeof streak === 'number') {
+      updateAboutDuolingoStreak(`🔥 ${streak} day streak`);
+    } else {
+      updateAboutDuolingoStreak('Streak unavailable');
+    }
   } catch (error) {
-    console.error('Failed to fetch Duolingo streak:', error);
-    return fallback();
+    clearTimeout(timer);
+    updateAboutDuolingoStreak('Streak unavailable');
   }
 }
 
@@ -623,13 +640,7 @@ class PortfolioScene extends Phaser.Scene {
 }
 
 async function bootstrapGame() {
-  try {
-    loadingBadge.textContent = 'Loading weather...';
-    await fetchMelbourneWeatherTheme();
-    await fetchDuolingoStreak();
-  } finally {
-    loadingBadge.textContent = 'Loading world...';
-  }
+  loadingBadge.textContent = 'Loading world...';
 
   const config = {
     type: Phaser.AUTO,
@@ -654,6 +665,9 @@ async function bootstrapGame() {
 
   game = new Phaser.Game(config);
   loadingBadge.style.display = 'none';
+
+  fetchMelbourneWeatherTheme();
+  fetchDuolingoStreak();
 }
 
 window.addEventListener('resize', () => {
