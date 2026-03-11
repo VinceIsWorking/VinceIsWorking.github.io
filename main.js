@@ -7,16 +7,14 @@ const portfolioContent = {
     title: 'About Me',
     body: `
       <h3>Hello, I'm Vincent</h3>
-      <p>
-  🐞 “Ah, bugs,”<br>
-  🥲 he said, wiping his eyes.<br>
-  🧙‍♂️ “A magic beyond all we do here!”<br>
-  👨‍💻 he who is wholeheartedly developing https://www.aspectu4d.com/ using UE5/C++ for 4 years
-</p>
+      <p> 🐞  “Ah, bugs,”
+          🥲  he said, wiping his eyes.
+          🧙‍♂️  “A magic beyond all we do here!”
+          👨‍💻  he who is wholeheartedly developing https://www.aspectu4d.com/ using UE5/C++ for 4 years</p>
       <div class="card-grid">
         <div class="pixel-card"><strong>Base</strong> Melbourne, Australia</div>
         <div class="pixel-card"><strong>Email</strong> <a href="mailto:vincentlee264@gmail.com">vincentlee264@gmail.com</a></div>
-        <div class="pixel-card"><strong>LinkedIn</strong> <a href="https://www.linkedin.com/in/august264/" target="_blank" rel="noopener noreferrer">linkedin.com/in/august264</a></div>
+        <div class="pixel-card"><strong>Duolingo</strong> <span id="duolingo-streak" class="pixel-streak">🔥 ${duolingoStreak}</span></div>
       </div>
     `
   },
@@ -72,6 +70,7 @@ const loadingBadge = document.getElementById('loading-badge');
 let activeInteractable = null;
 let isModalOpen = false;
 let currentWeatherTheme = 'cloudy';
+let duolingoStreak = 'Loading...';
 let game = null;
 
 function openModal(key) {
@@ -163,6 +162,46 @@ async function fetchMelbourneWeatherTheme() {
     weatherBadge.textContent = `Weather: ${currentWeatherTheme}`;
     return currentWeatherTheme;
   } catch (error) {
+    return fallback();
+  }
+}
+
+async function fetchDuolingoStreak() {
+  const fallback = () => {
+    duolingoStreak = 'Streak unavailable';
+    const streakNode = document.getElementById('duolingo-streak');
+    if (streakNode) streakNode.textContent = duolingoStreak;
+    return duolingoStreak;
+  };
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3500);
+    const response = await fetch(
+      'https://www.duolingo.com/2017-06-30/users?username=VincentSaiko',
+      { signal: controller.signal }
+    );
+    clearTimeout(timer);
+
+    if (!response.ok) return fallback();
+
+    const data = await response.json();
+    const streak = data?.users?.[0]?.streak;
+
+    if (typeof streak !== 'number') return fallback();
+
+    duolingoStreak = `🔥 ${streak} day streak`;
+    portfolioContent.about.body = portfolioContent.about.body.replace(
+      /<span id="duolingo-streak" class="pixel-streak">.*?<\/span>/,
+      `<span id="duolingo-streak" class="pixel-streak">${duolingoStreak}</span>`
+    );
+
+    const streakNode = document.getElementById('duolingo-streak');
+    if (streakNode) streakNode.textContent = duolingoStreak;
+
+    return duolingoStreak;
+  } catch (error) {
+    console.error('Failed to fetch Duolingo streak:', error);
     return fallback();
   }
 }
@@ -261,48 +300,49 @@ class PortfolioScene extends Phaser.Scene {
       g.fillRect(10, 8, 44, 34);
       g.fillStyle(0x0f172a, 1);
       g.fillRect(14, 12, 36, 22);
-      g.fillStyle(0x64748b, 1);
-      g.fillRect(0, 42, 64, 14);
-      g.generateTexture('computer', 64, 56);
+      g.fillStyle(0x38bdf8, 1);
+      g.fillRect(17, 15, 30, 16);
+      g.fillStyle(0xcbd5e1, 1);
+      g.fillRect(24, 44, 16, 4);
+      g.fillRect(19, 48, 26, 4);
+      g.generateTexture('computer', 64, 64);
     }
 
     if (!this.textures.exists('mail')) {
       g.clear();
-      g.fillStyle(0x94a3b8, 1);
-      g.fillRect(8, 16, 48, 32);
       g.fillStyle(0xf8fafc, 1);
-      g.fillRect(10, 18, 44, 28);
-      g.fillStyle(0x1d4ed8, 1);
-      g.fillTriangle(10, 18, 32, 34, 54, 18);
-      g.fillStyle(0x93c5fd, 1);
-      g.fillTriangle(10, 46, 24, 32, 32, 38);
-      g.fillTriangle(54, 46, 40, 32, 32, 38);
+      g.fillRect(8, 16, 48, 32);
+      g.lineStyle(3, 0x334155, 1);
+      g.strokeRect(8, 16, 48, 32);
+      g.beginPath();
+      g.moveTo(8, 16);
+      g.lineTo(32, 34);
+      g.lineTo(56, 16);
+      g.strokePath();
       g.generateTexture('mail', 64, 64);
     }
 
     if (!this.textures.exists('resume_icon')) {
       g.clear();
-      g.fillStyle(0x94a3b8, 1);
-      g.fillRect(14, 6, 36, 50);
-      g.fillStyle(0xf8fafc, 1);
-      g.fillRect(16, 8, 32, 46);
-      g.fillStyle(0xe2e8f0, 1);
-      g.fillRect(42, 8, 6, 10);
-      g.fillStyle(0x2563eb, 1);
-      g.fillRect(22, 18, 20, 3);
-      g.fillRect(22, 26, 20, 3);
-      g.fillRect(22, 34, 16, 3);
-      g.fillRect(22, 42, 18, 3);
+      g.fillStyle(0xffffff, 1);
+      g.fillRect(12, 8, 40, 48);
+      g.lineStyle(3, 0x0f172a, 1);
+      g.strokeRect(12, 8, 40, 48);
+      g.fillStyle(0x60a5fa, 1);
+      g.fillRect(18, 18, 28, 4);
+      g.fillRect(18, 28, 24, 4);
+      g.fillRect(18, 38, 20, 4);
       g.generateTexture('resume_icon', 64, 64);
     }
 
     if (!this.textures.exists('cloud')) {
       g.clear();
-      g.fillStyle(0xffffff, 0.95);
-      g.fillRect(0, 0, 64, 32);
-      g.fillStyle(0xdbeafe, 1);
-      g.fillRect(6, 6, 52, 20);
-      g.generateTexture('cloud', 64, 32);
+      g.fillStyle(0xffffff, 1);
+      g.fillCircle(22, 20, 14);
+      g.fillCircle(34, 14, 18);
+      g.fillCircle(48, 20, 14);
+      g.fillRect(18, 20, 34, 16);
+      g.generateTexture('cloud', 72, 48);
     }
 
     if (!this.textures.exists('raindrop')) {
@@ -586,6 +626,7 @@ async function bootstrapGame() {
   try {
     loadingBadge.textContent = 'Loading weather...';
     await fetchMelbourneWeatherTheme();
+    await fetchDuolingoStreak();
   } finally {
     loadingBadge.textContent = 'Loading world...';
   }
