@@ -17,7 +17,7 @@ const portfolioContent = {
 🐞 “Ah, bugs,”
 🥲 he said, wiping his eyes.
 🧙‍♂️ “A magic beyond all we do here!”
-👨‍💻 he who is wholeheartedly developing https://www.aspectu4d.com/ using UE5/C++ for 4 years
+👨‍💻 he who is wholeheartedly developing www.aspectu4d.com using UE5/C++ for 4 years
 </p>
       <div class="card-grid">
         <div class="pixel-card"><strong>Base</strong> Melbourne, Australia</div>
