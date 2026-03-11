@@ -7,7 +7,10 @@ const portfolioContent = {
     title: 'About Me',
     body: `
       <h3>Hello, I'm Vincent</h3>
-      <p>I build interactive software experiences with a strong focus on Unreal Engine, real-time visualization, tools, and creative technical problem solving.</p>
+      <p> 🐞  “Ah, bugs,”
+          🥲  he said, wiping his eyes.
+          🧙‍♂️  “A magic beyond all we do here!”
+          👨‍💻  he who is wholeheartedly developing https://www.aspectu4d.com/ using UE5/C++ for 4 years</p>
       <div class="card-grid">
         <div class="pixel-card"><strong>Base</strong> Melbourne, Australia</div>
         <div class="pixel-card"><strong>Email</strong> <a href="mailto:vincentlee264@gmail.com">vincentlee264@gmail.com</a></div>
