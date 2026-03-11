@@ -1,0 +1,48 @@
+name: Update Duolingo Streak
+
+on:
+  schedule:
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-streak:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch Duolingo streak
+        run: |
+          curl -s "https://www.duolingo.com/2017-06-30/users?username=VincentSaiko" -o duolingo-raw.json
+
+          python3 - <<'PY'
+          import json
+          from datetime import datetime, timezone
+
+          with open("duolingo-raw.json", "r", encoding="utf-8") as f:
+              raw = json.load(f)
+
+          streak = raw["users"][0]["streak"]
+
+          output = {
+              "streak": streak,
+              "updatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%d")
+          }
+
+          with open("duolingo.json", "w", encoding="utf-8") as f:
+              json.dump(output, f, ensure_ascii=False, indent=2)
+          PY
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add duolingo.json
+          git diff --cached --quiet || git commit -m "Update Duolingo streak"
+          git push
