@@ -12,7 +12,7 @@ const portfolioContent = {
   about: {
     title: 'About Me',
     body: `
-      <h3>Hello, I'm Vincent</h3>
+      <h3>Greetings, I'm Vincent</h3>
       <p class="about-text">
 🐞 “Ah, bugs,”
 🥲 he said, wiping his eyes.
@@ -22,7 +22,7 @@ const portfolioContent = {
 </p>
       <div class="card-grid">
         <div class="pixel-card"><strong>Base</strong> Melbourne, Australia</div>
-        <div class="pixel-card"><strong>Best Dance Placing</strong> Top 16</div>
+        <div class="pixel-card"><strong>Best Dance Placing</strong> 🕺 Top 16</div>
         <div class="pixel-card"><strong>Duolingo</strong> <span id="duolingo-streak" class="pixel-streak">🔥 ${duolingoStreak}</span></div>
       </div>
     `
@@ -30,7 +30,7 @@ const portfolioContent = {
   projects: {
     title: 'Projects',
     body: `
-      <h3>Selected Project</h3>
+      <h3>Highlight Project</h3>
       <div class="card-grid">
         <div class="pixel-card" style="border-color: rgba(250, 204, 21, 0.45); background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)); box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.08) inset;">
           <strong style="font-size: 24px; line-height: 1.2; margin-bottom: 12px;"><a href="https://www.aspectu4d.com/" target="_blank" rel="noopener noreferrer" style="color:#facc15; text-decoration:none; border-bottom:2px solid rgba(250,204,21,0.45); padding-bottom:2px;">Aspectu 4D</a></strong>
