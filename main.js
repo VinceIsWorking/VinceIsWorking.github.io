@@ -192,15 +192,7 @@ function updateAboutDuolingoStreak(newText) {
 
 async function fetchDuolingoStreak() {
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3500);
-
-    const response = await fetch(
-      'https://www.duolingo.com/2017-06-30/users?username=VincentSaiko',
-      { signal: controller.signal }
-    );
-
-    clearTimeout(timer);
+    const response = await fetch('./duolingo.json', { cache: 'no-store' });
 
     if (!response.ok) {
       updateAboutDuolingoStreak('Streak unavailable');
@@ -208,7 +200,7 @@ async function fetchDuolingoStreak() {
     }
 
     const data = await response.json();
-    const streak = data?.users?.[0]?.streak;
+    const streak = data?.streak;
 
     if (typeof streak === 'number') {
       updateAboutDuolingoStreak(`🔥 ${streak} day streak`);
