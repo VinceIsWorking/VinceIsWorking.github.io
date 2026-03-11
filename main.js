@@ -2,6 +2,12 @@ const PLATFORM_TILE_WIDTH = 53;
 const PLATFORM_TILE_HEIGHT = 16;
 const PLATFORM_TILE_COUNT = 2;
 
+let activeInteractable = null;
+let isModalOpen = false;
+let currentWeatherTheme = 'cloudy';
+let duolingoStreak = 'Loading...';
+let game = null;
+
 const portfolioContent = {
   about: {
     title: 'About Me',
@@ -67,12 +73,6 @@ const interactionHint = document.getElementById('interaction-hint');
 const weatherBadge = document.getElementById('weather-badge');
 const loadingBadge = document.getElementById('loading-badge');
 
-let activeInteractable = null;
-let isModalOpen = false;
-let currentWeatherTheme = 'cloudy';
-let duolingoStreak = 'Loading...';
-let game = null;
-
 function openModal(key) {
   const item = portfolioContent[key];
   if (!item) return;
@@ -112,20 +112,25 @@ function normalizeWeatherTheme(text) {
 async function fetchMelbourneWeatherTheme() {
   const fallback = () => {
     currentWeatherTheme = normalizeWeatherTheme('partly sunny');
-    weatherBadge.textContent = `Weather: ${currentWeatherTheme}`;
+    if (weatherBadge) {
+      weatherBadge.textContent = `Weather: ${currentWeatherTheme}`;
+    }
     return currentWeatherTheme;
   };
 
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 3500);
+
     const response = await fetch(
       'https://api.open-meteo.com/v1/forecast?latitude=-37.8136&longitude=144.9631&current=weather_code,is_day&timezone=Australia%2FMelbourne',
       { signal: controller.signal }
     );
+
     clearTimeout(timer);
 
     if (!response.ok) return fallback();
+
     const data = await response.json();
     const code = data?.current?.weather_code;
     const codeMap = {
@@ -158,8 +163,13 @@ async function fetchMelbourneWeatherTheme() {
       96: 'snow',
       99: 'snow'
     };
+
     currentWeatherTheme = codeMap[code] || 'cloudy';
-    weatherBadge.textContent = `Weather: ${currentWeatherTheme}`;
+
+    if (weatherBadge) {
+      weatherBadge.textContent = `Weather: ${currentWeatherTheme}`;
+    }
+
     return currentWeatherTheme;
   } catch (error) {
     return fallback();
@@ -168,23 +178,28 @@ async function fetchMelbourneWeatherTheme() {
 
 function updateAboutDuolingoStreak(newText) {
   duolingoStreak = newText;
+
   portfolioContent.about.body = portfolioContent.about.body.replace(
     /<span id="duolingo-streak" class="pixel-streak">.*?<\/span>/,
     `<span id="duolingo-streak" class="pixel-streak">${duolingoStreak}</span>`
   );
 
   const streakNode = document.getElementById('duolingo-streak');
-  if (streakNode) streakNode.textContent = duolingoStreak;
+  if (streakNode) {
+    streakNode.textContent = duolingoStreak;
+  }
 }
 
 async function fetchDuolingoStreak() {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 3500);
+
     const response = await fetch(
       'https://www.duolingo.com/2017-06-30/users?username=VincentSaiko',
       { signal: controller.signal }
     );
+
     clearTimeout(timer);
 
     if (!response.ok) {
@@ -206,9 +221,11 @@ async function fetchDuolingoStreak() {
 }
 
 closeModalButton.addEventListener('click', closeModal);
+
 modalOverlay.addEventListener('click', (e) => {
   if (e.target === modalOverlay) closeModal();
 });
+
 window.addEventListener('keydown', (e) => {
   if (e.key.toLowerCase() === 'q' && isModalOpen) closeModal();
 });
@@ -251,7 +268,9 @@ class PortfolioScene extends Phaser.Scene {
       g.fillStyle(0x22c55e, 1);
       g.fillRect(0, 0, 64, 24);
       g.fillStyle(0x166534, 1);
-      for (let x = 0; x < 64; x += 8) g.fillRect(x, 16, 8, 8);
+      for (let x = 0; x < 64; x += 8) {
+        g.fillRect(x, 16, 8, 8);
+      }
       g.generateTexture('ground', 64, 24);
     }
 
@@ -585,9 +604,11 @@ class PortfolioScene extends Phaser.Scene {
         break;
       }
     }
+
     activeInteractable = touching;
 
     const speed = this.layout.moveSpeed;
+
     if (this.keys.left.isDown) {
       this.player.setVelocityX(-speed);
       this.player.setFlipX(true);
@@ -622,10 +643,15 @@ class PortfolioScene extends Phaser.Scene {
 
 async function bootstrapGame() {
   try {
-    loadingBadge.textContent = 'Loading weather...';
+    if (loadingBadge) {
+      loadingBadge.textContent = 'Loading weather...';
+    }
+
     await fetchMelbourneWeatherTheme();
   } finally {
-    loadingBadge.textContent = 'Loading world...';
+    if (loadingBadge) {
+      loadingBadge.textContent = 'Loading world...';
+    }
   }
 
   const config = {
@@ -650,7 +676,10 @@ async function bootstrapGame() {
   };
 
   game = new Phaser.Game(config);
-  loadingBadge.style.display = 'none';
+
+  if (loadingBadge) {
+    loadingBadge.style.display = 'none';
+  }
 
   fetchDuolingoStreak();
 }
