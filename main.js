@@ -21,7 +21,7 @@ const portfolioContent = {
 </p>
       <div class="card-grid">
         <div class="pixel-card"><strong>Base</strong> Melbourne, Australia</div>
-        <div class="pixel-card"><strong>Popping Battle</strong> Top 16(Best)</div>
+        <div class="pixel-card"><strong>Best Dance Placing</strong> Top 16</div>
         <div class="pixel-card"><strong>Duolingo</strong> <span id="duolingo-streak" class="pixel-streak">🔥 ${duolingoStreak}</span></div>
       </div>
     `
