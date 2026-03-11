@@ -158,6 +158,11 @@ body {
   color: var(--muted);
 }
 
+.modal-body .about-text {
+  color: var(--muted);
+  white-space: pre-line;
+}
+
 .modal-body ul {
   padding-left: 20px;
 }
