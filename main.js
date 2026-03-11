@@ -2,12 +2,6 @@ const PLATFORM_TILE_WIDTH = 53;
 const PLATFORM_TILE_HEIGHT = 16;
 const PLATFORM_TILE_COUNT = 2;
 
-let activeInteractable = null;
-let isModalOpen = false;
-let currentWeatherTheme = 'cloudy';
-let duolingoStreak = 'Loading...';
-let game = null;
-
 const portfolioContent = {
   about: {
     title: 'About Me',
@@ -73,16 +67,11 @@ const interactionHint = document.getElementById('interaction-hint');
 const weatherBadge = document.getElementById('weather-badge');
 const loadingBadge = document.getElementById('loading-badge');
 
-function updateAboutDuolingoStreak(newText) {
-  duolingoStreak = newText;
-  portfolioContent.about.body = portfolioContent.about.body.replace(
-    /<span id="duolingo-streak" class="pixel-streak">.*?<\/span>/,
-    `<span id="duolingo-streak" class="pixel-streak">${duolingoStreak}</span>`
-  );
-
-  const streakNode = document.getElementById('duolingo-streak');
-  if (streakNode) streakNode.textContent = duolingoStreak;
-}
+let activeInteractable = null;
+let isModalOpen = false;
+let currentWeatherTheme = 'cloudy';
+let duolingoStreak = 'Loading...';
+let game = null;
 
 function openModal(key) {
   const item = portfolioContent[key];
@@ -123,25 +112,20 @@ function normalizeWeatherTheme(text) {
 async function fetchMelbourneWeatherTheme() {
   const fallback = () => {
     currentWeatherTheme = normalizeWeatherTheme('partly sunny');
-    if (weatherBadge) weatherBadge.textContent = `Weather: ${currentWeatherTheme}`;
+    weatherBadge.textContent = `Weather: ${currentWeatherTheme}`;
     return currentWeatherTheme;
   };
 
-  let timer;
-
   try {
     const controller = new AbortController();
-    timer = setTimeout(() => controller.abort(), 3000);
-
+    const timer = setTimeout(() => controller.abort(), 3500);
     const response = await fetch(
       'https://api.open-meteo.com/v1/forecast?latitude=-37.8136&longitude=144.9631&current=weather_code,is_day&timezone=Australia%2FMelbourne',
       { signal: controller.signal }
     );
-
     clearTimeout(timer);
 
     if (!response.ok) return fallback();
-
     const data = await response.json();
     const code = data?.current?.weather_code;
     const codeMap = {
@@ -174,34 +158,33 @@ async function fetchMelbourneWeatherTheme() {
       96: 'snow',
       99: 'snow'
     };
-
     currentWeatherTheme = codeMap[code] || 'cloudy';
-    if (weatherBadge) weatherBadge.textContent = `Weather: ${currentWeatherTheme}`;
-
-    if (game && game.scene.keys['PortfolioScene']) {
-      game.scene.stop('PortfolioScene');
-      game.scene.start('PortfolioScene');
-    }
-
+    weatherBadge.textContent = `Weather: ${currentWeatherTheme}`;
     return currentWeatherTheme;
   } catch (error) {
-    clearTimeout(timer);
     return fallback();
   }
 }
 
-async function fetchDuolingoStreak() {
-  let timer;
+function updateAboutDuolingoStreak(newText) {
+  duolingoStreak = newText;
+  portfolioContent.about.body = portfolioContent.about.body.replace(
+    /<span id="duolingo-streak" class="pixel-streak">.*?<\/span>/,
+    `<span id="duolingo-streak" class="pixel-streak">${duolingoStreak}</span>`
+  );
 
+  const streakNode = document.getElementById('duolingo-streak');
+  if (streakNode) streakNode.textContent = duolingoStreak;
+}
+
+async function fetchDuolingoStreak() {
   try {
     const controller = new AbortController();
-    timer = setTimeout(() => controller.abort(), 3000);
-
+    const timer = setTimeout(() => controller.abort(), 3500);
     const response = await fetch(
       'https://www.duolingo.com/2017-06-30/users?username=VincentSaiko',
       { signal: controller.signal }
     );
-
     clearTimeout(timer);
 
     if (!response.ok) {
@@ -218,7 +201,6 @@ async function fetchDuolingoStreak() {
       updateAboutDuolingoStreak('Streak unavailable');
     }
   } catch (error) {
-    clearTimeout(timer);
     updateAboutDuolingoStreak('Streak unavailable');
   }
 }
@@ -317,49 +299,48 @@ class PortfolioScene extends Phaser.Scene {
       g.fillRect(10, 8, 44, 34);
       g.fillStyle(0x0f172a, 1);
       g.fillRect(14, 12, 36, 22);
-      g.fillStyle(0x38bdf8, 1);
-      g.fillRect(17, 15, 30, 16);
-      g.fillStyle(0xcbd5e1, 1);
-      g.fillRect(24, 44, 16, 4);
-      g.fillRect(19, 48, 26, 4);
-      g.generateTexture('computer', 64, 64);
+      g.fillStyle(0x64748b, 1);
+      g.fillRect(0, 42, 64, 14);
+      g.generateTexture('computer', 64, 56);
     }
 
     if (!this.textures.exists('mail')) {
       g.clear();
-      g.fillStyle(0xf8fafc, 1);
+      g.fillStyle(0x94a3b8, 1);
       g.fillRect(8, 16, 48, 32);
-      g.lineStyle(3, 0x334155, 1);
-      g.strokeRect(8, 16, 48, 32);
-      g.beginPath();
-      g.moveTo(8, 16);
-      g.lineTo(32, 34);
-      g.lineTo(56, 16);
-      g.strokePath();
+      g.fillStyle(0xf8fafc, 1);
+      g.fillRect(10, 18, 44, 28);
+      g.fillStyle(0x1d4ed8, 1);
+      g.fillTriangle(10, 18, 32, 34, 54, 18);
+      g.fillStyle(0x93c5fd, 1);
+      g.fillTriangle(10, 46, 24, 32, 32, 38);
+      g.fillTriangle(54, 46, 40, 32, 32, 38);
       g.generateTexture('mail', 64, 64);
     }
 
     if (!this.textures.exists('resume_icon')) {
       g.clear();
-      g.fillStyle(0xffffff, 1);
-      g.fillRect(12, 8, 40, 48);
-      g.lineStyle(3, 0x0f172a, 1);
-      g.strokeRect(12, 8, 40, 48);
-      g.fillStyle(0x60a5fa, 1);
-      g.fillRect(18, 18, 28, 4);
-      g.fillRect(18, 28, 24, 4);
-      g.fillRect(18, 38, 20, 4);
+      g.fillStyle(0x94a3b8, 1);
+      g.fillRect(14, 6, 36, 50);
+      g.fillStyle(0xf8fafc, 1);
+      g.fillRect(16, 8, 32, 46);
+      g.fillStyle(0xe2e8f0, 1);
+      g.fillRect(42, 8, 6, 10);
+      g.fillStyle(0x2563eb, 1);
+      g.fillRect(22, 18, 20, 3);
+      g.fillRect(22, 26, 20, 3);
+      g.fillRect(22, 34, 16, 3);
+      g.fillRect(22, 42, 18, 3);
       g.generateTexture('resume_icon', 64, 64);
     }
 
     if (!this.textures.exists('cloud')) {
       g.clear();
-      g.fillStyle(0xffffff, 1);
-      g.fillCircle(22, 20, 14);
-      g.fillCircle(34, 14, 18);
-      g.fillCircle(48, 20, 14);
-      g.fillRect(18, 20, 34, 16);
-      g.generateTexture('cloud', 72, 48);
+      g.fillStyle(0xffffff, 0.95);
+      g.fillRect(0, 0, 64, 32);
+      g.fillStyle(0xdbeafe, 1);
+      g.fillRect(6, 6, 52, 20);
+      g.generateTexture('cloud', 64, 32);
     }
 
     if (!this.textures.exists('raindrop')) {
@@ -640,7 +621,12 @@ class PortfolioScene extends Phaser.Scene {
 }
 
 async function bootstrapGame() {
-  loadingBadge.textContent = 'Loading world...';
+  try {
+    loadingBadge.textContent = 'Loading weather...';
+    await fetchMelbourneWeatherTheme();
+  } finally {
+    loadingBadge.textContent = 'Loading world...';
+  }
 
   const config = {
     type: Phaser.AUTO,
@@ -666,7 +652,6 @@ async function bootstrapGame() {
   game = new Phaser.Game(config);
   loadingBadge.style.display = 'none';
 
-  fetchMelbourneWeatherTheme();
   fetchDuolingoStreak();
 }
 
