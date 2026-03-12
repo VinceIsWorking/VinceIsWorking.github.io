@@ -57,12 +57,7 @@ const portfolioContent = {
   resume: {
     title: 'Resume',
     body: `
-      <h3>Download Resume</h3>
-      <p>Add your PDF to the repository, for example:</p>
-      <ul>
-        <li><code>/assets/Vincent_Li_Resume.pdf</code></li>
-      </ul>
-      <p>Then update this link:</p>
+      <h3>View Resume</h3>
       <p><a href="./assets/Vincent_Li_Resume.pdf" target="_blank" rel="noopener noreferrer">Open Resume PDF</a></p>
     `
   }
