@@ -92,6 +92,11 @@ function isMobileLandscape() {
   return window.matchMedia('(pointer: coarse) and (orientation: landscape)').matches;
 }
 
+function updateCloseButtonLabel() {
+  if (!closeModalButton) return;
+  closeModalButton.textContent = isMobileDevice ? 'Close' : 'Close Q';
+}
+
 function showRotateOverlay() {
   if (rotateOverlay) {
     rotateOverlay.style.display = 'flex';
@@ -105,7 +110,7 @@ function hideRotateOverlay() {
 }
 
 function showMobileControls() {
-  if (mobileControls) {
+  if (mobileControls && !isModalOpen) {
     mobileControls.style.display = 'flex';
   }
 }
@@ -123,11 +128,18 @@ function openModal(key) {
   modalBody.innerHTML = item.body;
   modalOverlay.style.display = 'flex';
   isModalOpen = true;
+  hideMobileControls();
+  updateCloseButtonLabel();
 }
 
 function closeModal() {
   modalOverlay.style.display = 'none';
   isModalOpen = false;
+  updateCloseButtonLabel();
+
+  if (isMobileDevice && isMobileLandscape()) {
+    showMobileControls();
+  }
 }
 
 function normalizeWeatherTheme(text) {
@@ -427,11 +439,15 @@ class PortfolioScene extends Phaser.Scene {
     const groundY = this.worldHeight - (mobileLandscapeMode ? 56 : 78);
     const moveSpeed = Phaser.Math.Clamp(this.worldWidth * 0.16, 210, 360);
     const gravityY = Phaser.Math.Clamp(this.worldHeight * 1.9, 1450, 2100);
-    const jumpVelocity = -Phaser.Math.Clamp(this.worldHeight * 0.92, 740, 980);
+
+    const desktopJumpMagnitude = Phaser.Math.Clamp(this.worldHeight * 0.92, 740, 980);
+    const mobileJumpMagnitude = Phaser.Math.Clamp(desktopJumpMagnitude * 0.5, 370, 490);
+    const jumpVelocity = mobileLandscapeMode ? -mobileJumpMagnitude : -desktopJumpMagnitude;
+
     const theoreticalJumpHeight = (jumpVelocity * jumpVelocity) / (2 * gravityY);
 
     const safeVerticalStep = mobileLandscapeMode
-      ? Phaser.Math.Clamp(theoreticalJumpHeight * 0.44, 26, 52)
+      ? Phaser.Math.Clamp(theoreticalJumpHeight * 0.44, 18, 32)
       : Phaser.Math.Clamp(theoreticalJumpHeight * 0.68, 44, 92);
 
     const safeHorizontalStep = mobileLandscapeMode
@@ -439,7 +455,7 @@ class PortfolioScene extends Phaser.Scene {
       : Phaser.Math.Clamp(this.worldWidth * 0.16, 120, 220);
 
     const firstPlatformRise = mobileLandscapeMode
-      ? Phaser.Math.Clamp(theoreticalJumpHeight * 0.40, 36, 68)
+      ? Phaser.Math.Clamp(theoreticalJumpHeight * 0.40, 24, 42)
       : Phaser.Math.Clamp(theoreticalJumpHeight * 0.62, 70, 130);
 
     const level1Y = groundY - firstPlatformRise;
@@ -787,6 +803,8 @@ function scheduleRefresh() {
 }
 
 function initExperience() {
+  updateCloseButtonLabel();
+
   if (!isMobileDevice) {
     hideRotateOverlay();
     hideMobileControls();
@@ -802,7 +820,10 @@ function initExperience() {
 
   if (isMobileLandscape()) {
     hideRotateOverlay();
-    showMobileControls();
+
+    if (!isModalOpen) {
+      showMobileControls();
+    }
 
     if (!hasBootstrapped) {
       hasBootstrapped = true;
@@ -902,6 +923,7 @@ function setupMobileControls() {
 }
 
 window.addEventListener('load', () => {
+  updateCloseButtonLabel();
   setupMobileControls();
   initExperience();
 });
