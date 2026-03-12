@@ -7,6 +7,11 @@ let isModalOpen = false;
 let currentWeatherTheme = 'cloudy';
 let duolingoStreak = 'Loading...';
 let game = null;
+let hasBootstrapped = false;
+let mobileControlsBound = false;
+let resizeRaf = null;
+
+const isMobileDevice = window.matchMedia('(pointer: coarse)').matches;
 
 const portfolioContent = {
   about: {
@@ -70,6 +75,44 @@ const closeModalButton = document.getElementById('close-modal');
 const interactionHint = document.getElementById('interaction-hint');
 const weatherBadge = document.getElementById('weather-badge');
 const loadingBadge = document.getElementById('loading-badge');
+const rotateOverlay = document.getElementById('rotate-overlay');
+const mobileControls = document.getElementById('mobile-controls');
+
+function getViewportSize() {
+  const vv = window.visualViewport;
+  return {
+    width: Math.max(1, Math.round(vv ? vv.width : window.innerWidth)),
+    height: Math.max(1, Math.round(vv ? vv.height : window.innerHeight))
+  };
+}
+
+function isMobileLandscape() {
+  return window.matchMedia('(pointer: coarse) and (orientation: landscape)').matches;
+}
+
+function showRotateOverlay() {
+  if (rotateOverlay) {
+    rotateOverlay.style.display = 'flex';
+  }
+}
+
+function hideRotateOverlay() {
+  if (rotateOverlay) {
+    rotateOverlay.style.display = 'none';
+  }
+}
+
+function showMobileControls() {
+  if (mobileControls) {
+    mobileControls.style.display = 'flex';
+  }
+}
+
+function hideMobileControls() {
+  if (mobileControls) {
+    mobileControls.style.display = 'none';
+  }
+}
 
 function openModal(key) {
   const item = portfolioContent[key];
@@ -93,17 +136,20 @@ function normalizeWeatherTheme(text) {
     value.includes('blizzard') ||
     value.includes('ice')
   ) return 'snow';
+
   if (
     value.includes('rain') ||
     value.includes('shower') ||
     value.includes('drizzle') ||
     value.includes('storm')
   ) return 'rain';
+
   if (
     value.includes('sun') ||
     value.includes('clear') ||
     value.includes('fair')
   ) return 'sunny';
+
   return 'cloudy';
 }
 
@@ -231,6 +277,7 @@ class PortfolioScene extends Phaser.Scene {
 
   create() {
     activeInteractable = null;
+
     this.worldWidth = this.scale.width;
     this.worldHeight = this.scale.height;
 
@@ -371,14 +418,25 @@ class PortfolioScene extends Phaser.Scene {
   }
 
   buildResponsiveLayout() {
-    const groundY = this.worldHeight - 78;
+    const mobileLandscapeMode = isMobileLandscape();
+
+    const groundY = this.worldHeight - (mobileLandscapeMode ? 56 : 78);
     const moveSpeed = Phaser.Math.Clamp(this.worldWidth * 0.16, 210, 360);
     const gravityY = Phaser.Math.Clamp(this.worldHeight * 1.9, 1450, 2100);
     const jumpVelocity = -Phaser.Math.Clamp(this.worldHeight * 0.92, 740, 980);
     const theoreticalJumpHeight = (jumpVelocity * jumpVelocity) / (2 * gravityY);
-    const safeVerticalStep = Phaser.Math.Clamp(theoreticalJumpHeight * 0.68, 44, 92);
-    const safeHorizontalStep = Phaser.Math.Clamp(this.worldWidth * 0.16, 120, 220);
-    const firstPlatformRise = Phaser.Math.Clamp(theoreticalJumpHeight * 0.62, 70, 130);
+
+    const safeVerticalStep = mobileLandscapeMode
+      ? Phaser.Math.Clamp(theoreticalJumpHeight * 0.44, 26, 52)
+      : Phaser.Math.Clamp(theoreticalJumpHeight * 0.68, 44, 92);
+
+    const safeHorizontalStep = mobileLandscapeMode
+      ? Phaser.Math.Clamp(this.worldWidth * 0.18, 120, 200)
+      : Phaser.Math.Clamp(this.worldWidth * 0.16, 120, 220);
+
+    const firstPlatformRise = mobileLandscapeMode
+      ? Phaser.Math.Clamp(theoreticalJumpHeight * 0.40, 36, 68)
+      : Phaser.Math.Clamp(theoreticalJumpHeight * 0.62, 70, 130);
 
     const level1Y = groundY - firstPlatformRise;
     const level2Y = level1Y - safeVerticalStep;
@@ -402,7 +460,8 @@ class PortfolioScene extends Phaser.Scene {
       points,
       moveSpeed,
       gravityY,
-      jumpVelocity
+      jumpVelocity,
+      mobileLandscapeMode
     };
   }
 
@@ -526,9 +585,10 @@ class PortfolioScene extends Phaser.Scene {
 
   createSigns() {
     this.interactables.forEach((item) => {
+      const fontSize = this.layout.mobileLandscapeMode ? '12px' : '16px';
       this.add.text(item.x, item.y - 84, item.label, {
         fontFamily: 'Courier New, monospace',
-        fontSize: '16px',
+        fontSize,
         color: '#0f172a',
         backgroundColor: '#ffffff',
         padding: { left: 6, right: 6, top: 4, bottom: 4 }
@@ -539,15 +599,18 @@ class PortfolioScene extends Phaser.Scene {
   createPlayer() {
     const variants = ['player_red', 'player_blue', 'player_green', 'player_purple'];
     const randomVariant = Phaser.Utils.Array.GetRandom(variants);
+
     this.player = this.physics.add.sprite(
       Math.max(70, this.worldWidth * 0.08),
       this.layout.groundY - 130,
       randomVariant
     );
+
     this.player.setCollideWorldBounds(true);
     this.player.setBounce(0);
     this.player.setSize(18, 34).setOffset(11, 2);
     this.player.body.setGravityY(this.layout.gravityY);
+
     this.physics.add.collider(this.player, this.platforms);
   }
 
@@ -582,6 +645,7 @@ class PortfolioScene extends Phaser.Scene {
     }
 
     let touching = null;
+
     for (const item of this.interactables) {
       const dist = Phaser.Math.Distance.Between(
         this.player.x,
@@ -589,6 +653,7 @@ class PortfolioScene extends Phaser.Scene {
         item.x,
         item.y - 20
       );
+
       if (dist < 95) {
         touching = item;
         break;
@@ -621,7 +686,10 @@ class PortfolioScene extends Phaser.Scene {
 
     if (activeInteractable) {
       interactionHint.style.display = 'block';
-      interactionHint.textContent = `Press E to interact: ${activeInteractable.label}`;
+      interactionHint.textContent = isMobileDevice
+        ? `Tap E to interact: ${activeInteractable.label}`
+        : `Press E to interact: ${activeInteractable.label}`;
+
       if (Phaser.Input.Keyboard.JustDown(this.keys.interact)) {
         openModal(activeInteractable.key);
       }
@@ -634,6 +702,7 @@ class PortfolioScene extends Phaser.Scene {
 async function bootstrapGame() {
   try {
     if (loadingBadge) {
+      loadingBadge.style.display = 'block';
       loadingBadge.textContent = 'Loading weather...';
     }
 
@@ -644,11 +713,13 @@ async function bootstrapGame() {
     }
   }
 
+  const viewport = getViewportSize();
+
   const config = {
     type: Phaser.AUTO,
     parent: 'game-container',
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: viewport.width,
+    height: viewport.height,
     backgroundColor: '#7dd3fc',
     pixelArt: true,
     scale: {
@@ -674,70 +745,163 @@ async function bootstrapGame() {
   fetchDuolingoStreak();
 }
 
-window.addEventListener('resize', () => {
+function restartSceneToViewport() {
   if (!game) return;
-  game.scale.resize(window.innerWidth, window.innerHeight);
+
+  const viewport = getViewportSize();
+  game.scale.resize(viewport.width, viewport.height);
+
+  const scene = game.scene.getScene('PortfolioScene');
+  if (!scene) return;
+
   game.scene.stop('PortfolioScene');
   game.scene.start('PortfolioScene');
-});
+}
 
-bootstrapGame();
+function scheduleRefresh() {
+  if (resizeRaf) {
+    cancelAnimationFrame(resizeRaf);
+  }
 
-/* ------------------------------
-   Mobile button controls
---------------------------------*/
+  resizeRaf = requestAnimationFrame(() => {
+    resizeRaf = null;
+    initExperience();
+  });
+}
+
+function initExperience() {
+  if (!isMobileDevice) {
+    hideRotateOverlay();
+    hideMobileControls();
+
+    if (!hasBootstrapped) {
+      hasBootstrapped = true;
+      bootstrapGame();
+    } else {
+      restartSceneToViewport();
+    }
+    return;
+  }
+
+  if (isMobileLandscape()) {
+    hideRotateOverlay();
+    showMobileControls();
+
+    if (!hasBootstrapped) {
+      hasBootstrapped = true;
+      bootstrapGame();
+    } else {
+      restartSceneToViewport();
+    }
+  } else {
+    showRotateOverlay();
+    hideMobileControls();
+
+    if (game && interactionHint) {
+      interactionHint.style.display = 'none';
+    }
+  }
+}
 
 function setupMobileControls() {
-  const btnLeft = document.getElementById("btn-left");
-  const btnRight = document.getElementById("btn-right");
-  const btnJump = document.getElementById("btn-jump");
-  const btnInteract = document.getElementById("btn-interact");
+  if (mobileControlsBound) return;
+  mobileControlsBound = true;
+
+  const btnLeft = document.getElementById('btn-left');
+  const btnRight = document.getElementById('btn-right');
+  const btnJump = document.getElementById('btn-jump');
+  const btnInteract = document.getElementById('btn-interact');
 
   if (!btnLeft || !btnRight || !btnJump || !btnInteract) return;
 
-  const press = (key) => {
+  const withScene = (callback) => {
     if (!game) return;
     const scene = game.scene.getScene('PortfolioScene');
     if (!scene || !scene.keys) return;
-    scene.keys[key].isDown = true;
+    callback(scene);
+  };
+
+  const press = (key) => {
+    withScene((scene) => {
+      scene.keys[key].isDown = true;
+    });
   };
 
   const release = (key) => {
-    if (!game) return;
-    const scene = game.scene.getScene('PortfolioScene');
-    if (!scene || !scene.keys) return;
-    scene.keys[key].isDown = false;
-  };
-
-  const tap = (key) => {
-    if (!game) return;
-    const scene = game.scene.getScene('PortfolioScene');
-    if (!scene || !scene.keys) return;
-    scene.keys[key].isDown = true;
-    setTimeout(() => {
+    withScene((scene) => {
       scene.keys[key].isDown = false;
-    }, 80);
+    });
   };
 
-  /* LEFT */
-  btnLeft.addEventListener("touchstart", () => press("left"));
-  btnLeft.addEventListener("touchend", () => release("left"));
+  const tap = (key, duration = 90) => {
+    withScene((scene) => {
+      scene.keys[key].isDown = true;
+      setTimeout(() => {
+        if (scene.keys && scene.keys[key]) {
+          scene.keys[key].isDown = false;
+        }
+      }, duration);
+    });
+  };
 
-  /* RIGHT */
-  btnRight.addEventListener("touchstart", () => press("right"));
-  btnRight.addEventListener("touchend", () => release("right"));
+  const bindHoldButton = (button, key) => {
+    const start = (e) => {
+      e.preventDefault();
+      press(key);
+    };
 
-  /* JUMP */
-  btnJump.addEventListener("touchstart", () => tap("up"));
+    const end = (e) => {
+      e.preventDefault();
+      release(key);
+    };
 
-  /* INTERACT */
-  btnInteract.addEventListener("touchstart", () => {
-  if (isModalOpen) {
-    closeModal();
-  } else {
-    tap("interact");
-  }
-});
+    button.addEventListener('touchstart', start, { passive: false });
+    button.addEventListener('touchend', end, { passive: false });
+    button.addEventListener('touchcancel', end, { passive: false });
+    button.addEventListener('mousedown', start);
+    button.addEventListener('mouseup', end);
+    button.addEventListener('mouseleave', end);
+  };
+
+  bindHoldButton(btnLeft, 'left');
+  bindHoldButton(btnRight, 'right');
+
+  btnJump.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    tap('up');
+  }, { passive: false });
+
+  btnJump.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    tap('up');
+  });
+
+  btnInteract.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (isModalOpen) {
+      closeModal();
+    } else {
+      tap('interact');
+    }
+  }, { passive: false });
+
+  btnInteract.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    if (isModalOpen) {
+      closeModal();
+    } else {
+      tap('interact');
+    }
+  });
 }
 
-window.addEventListener("load", setupMobileControls);
+window.addEventListener('load', () => {
+  setupMobileControls();
+  initExperience();
+});
+
+window.addEventListener('resize', scheduleRefresh);
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', scheduleRefresh);
+}
