@@ -229,3 +229,176 @@ body {
     font-size: 14px;
   }
 }
+
+/* ------------------------------ */
+/* Mobile-only landscape support  */
+/* ------------------------------ */
+
+#rotate-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(2, 6, 23, 0.88);
+  z-index: 100;
+}
+
+.rotate-box {
+  position: static;
+  transform: none;
+  left: auto;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+  pointer-events: auto;
+  background: rgba(15, 23, 42, 0.96);
+  color: #fff;
+  padding: 20px 18px;
+}
+
+.rotate-box h2 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.rotate-box p {
+  margin: 6px 0;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.rotate-small {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+#mobile-controls {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  display: none;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.mobile-left,
+.mobile-right {
+  display: flex;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.mobile-btn {
+  width: 58px;
+  height: 58px;
+  border: 3px solid #0f172a;
+  background: rgba(255, 255, 255, 0.9);
+  color: #0f172a;
+  font: inherit;
+  font-size: 22px;
+  font-weight: 700;
+  box-shadow: 0 0 0 3px #ffffff, 0 6px 0 rgba(15, 23, 42, 0.45);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-btn:active {
+  transform: translateY(2px);
+}
+
+@media (hover: none) and (pointer: coarse) and (orientation: portrait) {
+  #rotate-overlay {
+    display: flex;
+  }
+
+  #mobile-controls {
+    display: none;
+  }
+
+  #hud,
+  #weather-badge,
+  #loading-badge,
+  #interaction-hint {
+    display: none !important;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+  #rotate-overlay {
+    display: none;
+  }
+
+  #mobile-controls {
+    display: flex;
+  }
+
+  #hud {
+    display: none;
+  }
+
+  #weather-badge {
+    top: 12px;
+    left: 12px;
+    transform: none;
+    font-size: 10px;
+    padding: 6px 8px;
+    max-width: 42vw;
+  }
+
+  #loading-badge {
+    top: 52px;
+    left: 12px;
+    transform: none;
+    font-size: 10px;
+    padding: 6px 8px;
+    max-width: 42vw;
+  }
+
+  #interaction-hint {
+    bottom: 88px;
+    font-size: 12px;
+    padding: 8px 12px;
+    max-width: calc(100vw - 32px);
+  }
+
+  #modal-overlay {
+    padding: 12px;
+  }
+
+  #modal {
+    width: min(100%, 760px);
+    max-height: 88vh;
+  }
+
+  .modal-header {
+    padding: 12px 14px;
+  }
+
+  .modal-title {
+    font-size: 16px;
+  }
+
+  .modal-close {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .modal-body {
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .modal-body h3 {
+    font-size: 15px;
+  }
+}
