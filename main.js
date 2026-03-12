@@ -434,56 +434,66 @@ class PortfolioScene extends Phaser.Scene {
   }
 
   buildResponsiveLayout() {
-    const mobileLandscapeMode = isMobileLandscape();
+   const mobileLandscapeMode = isMobileLandscape();
 
-    const groundY = this.worldHeight - (mobileLandscapeMode ? 56 : 78);
-    const moveSpeed = Phaser.Math.Clamp(this.worldWidth * 0.16, 210, 360);
-    const gravityY = Phaser.Math.Clamp(this.worldHeight * 1.9, 1450, 2100);
+  const groundY = this.worldHeight - (mobileLandscapeMode ? 56 : 78);
+  const moveSpeed = Phaser.Math.Clamp(this.worldWidth * 0.16, 210, 360);
+  const gravityY = Phaser.Math.Clamp(this.worldHeight * 1.9, 1450, 2100);
 
-    const desktopJumpMagnitude = Phaser.Math.Clamp(this.worldHeight * 0.92, 740, 980);
-    const mobileJumpMagnitude = Phaser.Math.Clamp(desktopJumpMagnitude * 0.5, 370, 490);
-    const jumpVelocity = mobileLandscapeMode ? -mobileJumpMagnitude : -desktopJumpMagnitude;
+  let jumpVelocity;
+  let safeVerticalStep;
+  let firstPlatformRise;
+  let safeHorizontalStep;
+
+  if (mobileLandscapeMode) {
+    /*
+      关键点：
+      1. 手机跳跃高度单独控制，不再直接驱动平台间距
+      2. 平台上下距离用固定范围，视觉更松一点
+      3. 跳跃高度只比桌面降低约 25~30%，而不是硬砍 50%
+         否则平台一拉开就跳不上去
+    */
+    jumpVelocity = -Phaser.Math.Clamp(this.worldHeight * 0.72, 520, 620);
+
+    safeVerticalStep = Phaser.Math.Clamp(this.worldHeight * 0.11, 34, 44);
+    firstPlatformRise = Phaser.Math.Clamp(this.worldHeight * 0.13, 38, 50);
+    safeHorizontalStep = Phaser.Math.Clamp(this.worldWidth * 0.20, 130, 210);
+  } else {
+    jumpVelocity = -Phaser.Math.Clamp(this.worldHeight * 0.92, 740, 980);
 
     const theoreticalJumpHeight = (jumpVelocity * jumpVelocity) / (2 * gravityY);
 
-    const safeVerticalStep = mobileLandscapeMode
-      ? Phaser.Math.Clamp(theoreticalJumpHeight * 0.44, 18, 32)
-      : Phaser.Math.Clamp(theoreticalJumpHeight * 0.68, 44, 92);
-
-    const safeHorizontalStep = mobileLandscapeMode
-      ? Phaser.Math.Clamp(this.worldWidth * 0.18, 120, 200)
-      : Phaser.Math.Clamp(this.worldWidth * 0.16, 120, 220);
-
-    const firstPlatformRise = mobileLandscapeMode
-      ? Phaser.Math.Clamp(theoreticalJumpHeight * 0.40, 24, 42)
-      : Phaser.Math.Clamp(theoreticalJumpHeight * 0.62, 70, 130);
-
-    const level1Y = groundY - firstPlatformRise;
-    const level2Y = level1Y - safeVerticalStep;
-    const level3Y = level2Y - safeVerticalStep;
-    const level4Y = level3Y - safeVerticalStep;
-
-    const centerX = this.worldWidth / 2;
-    const points = {
-      about: centerX - safeHorizontalStep / 2,
-      projects: centerX + safeHorizontalStep / 2,
-      resume: centerX - safeHorizontalStep / 2,
-      contact: centerX + safeHorizontalStep / 2
-    };
-
-    return {
-      groundY,
-      level1Y,
-      level2Y,
-      level3Y,
-      level4Y,
-      points,
-      moveSpeed,
-      gravityY,
-      jumpVelocity,
-      mobileLandscapeMode
-    };
+    safeVerticalStep = Phaser.Math.Clamp(theoreticalJumpHeight * 0.68, 44, 92);
+    firstPlatformRise = Phaser.Math.Clamp(theoreticalJumpHeight * 0.62, 70, 130);
+    safeHorizontalStep = Phaser.Math.Clamp(this.worldWidth * 0.16, 120, 220);
   }
+
+  const level1Y = groundY - firstPlatformRise;
+  const level2Y = level1Y - safeVerticalStep;
+  const level3Y = level2Y - safeVerticalStep;
+  const level4Y = level3Y - safeVerticalStep;
+
+  const centerX = this.worldWidth / 2;
+  const points = {
+    about: centerX - safeHorizontalStep / 2,
+    projects: centerX + safeHorizontalStep / 2,
+    resume: centerX - safeHorizontalStep / 2,
+    contact: centerX + safeHorizontalStep / 2
+  };
+
+  return {
+    groundY,
+    level1Y,
+    level2Y,
+    level3Y,
+    level4Y,
+    points,
+    moveSpeed,
+    gravityY,
+    jumpVelocity,
+    mobileLandscapeMode
+  };
+}
 
   drawBackground() {
     const themeStyles = {
