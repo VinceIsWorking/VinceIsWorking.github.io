@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vincent's Portfolio </title>
+  <title>Vincent's Portfolio</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -31,7 +31,30 @@
     </div>
   </div>
 
+  <div id="rotate-overlay">
+    <div class="rotate-box pixel-ui">
+      <h2>Best in Landscape</h2>
+      <p>Please rotate your phone for the best experience.</p>
+      <p class="rotate-small">Desktop controls stay unchanged.</p>
+    </div>
+  </div>
+
+  <div id="mobile-controls">
+    <div class="mobile-left">
+      <button class="mobile-btn" id="btn-left">◀</button>
+      <button class="mobile-btn" id="btn-right">▶</button>
+    </div>
+
+    <div class="mobile-right">
+      <button class="mobile-btn" id="btn-jump">▲</button>
+      <button class="mobile-btn" id="btn-interact">E</button>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
   <script src="main.js"></script>
+
+
+  
 </body>
 </html>
