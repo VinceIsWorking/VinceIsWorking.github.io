@@ -682,3 +682,62 @@ window.addEventListener('resize', () => {
 });
 
 bootstrapGame();
+
+/* ------------------------------
+   Mobile button controls
+--------------------------------*/
+
+function setupMobileControls() {
+  const btnLeft = document.getElementById("btn-left");
+  const btnRight = document.getElementById("btn-right");
+  const btnJump = document.getElementById("btn-jump");
+  const btnInteract = document.getElementById("btn-interact");
+
+  if (!btnLeft || !btnRight || !btnJump || !btnInteract) return;
+
+  const press = (key) => {
+    if (!game) return;
+    const scene = game.scene.getScene('PortfolioScene');
+    if (!scene || !scene.keys) return;
+    scene.keys[key].isDown = true;
+  };
+
+  const release = (key) => {
+    if (!game) return;
+    const scene = game.scene.getScene('PortfolioScene');
+    if (!scene || !scene.keys) return;
+    scene.keys[key].isDown = false;
+  };
+
+  const tap = (key) => {
+    if (!game) return;
+    const scene = game.scene.getScene('PortfolioScene');
+    if (!scene || !scene.keys) return;
+    scene.keys[key].isDown = true;
+    setTimeout(() => {
+      scene.keys[key].isDown = false;
+    }, 80);
+  };
+
+  /* LEFT */
+  btnLeft.addEventListener("touchstart", () => press("left"));
+  btnLeft.addEventListener("touchend", () => release("left"));
+
+  /* RIGHT */
+  btnRight.addEventListener("touchstart", () => press("right"));
+  btnRight.addEventListener("touchend", () => release("right"));
+
+  /* JUMP */
+  btnJump.addEventListener("touchstart", () => tap("up"));
+
+  /* INTERACT */
+  btnInteract.addEventListener("touchstart", () => {
+  if (isModalOpen) {
+    closeModal();
+  } else {
+    tap("interact");
+  }
+});
+}
+
+window.addEventListener("load", setupMobileControls);
