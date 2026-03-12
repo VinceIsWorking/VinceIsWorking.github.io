@@ -10,6 +10,8 @@ let game = null;
 let hasBootstrapped = false;
 let mobileControlsBound = false;
 let resizeRaf = null;
+let mobileJumpRequested = false;
+let mobileInteractRequested = false;
 
 const isMobileDevice = window.matchMedia('(pointer: coarse)').matches;
 
@@ -130,6 +132,7 @@ function closeModal() {
 
 function normalizeWeatherTheme(text) {
   const value = String(text || '').toLowerCase();
+
   if (
     value.includes('snow') ||
     value.includes('sleet') ||
@@ -177,6 +180,7 @@ async function fetchMelbourneWeatherTheme() {
 
     const data = await response.json();
     const code = data?.current?.weather_code;
+
     const codeMap = {
       0: 'sunny',
       1: 'sunny',
@@ -641,6 +645,8 @@ class PortfolioScene extends Phaser.Scene {
     if (isModalOpen) {
       this.player.setVelocityX(0);
       interactionHint.style.display = 'none';
+      mobileJumpRequested = false;
+      mobileInteractRequested = false;
       return;
     }
 
@@ -674,9 +680,14 @@ class PortfolioScene extends Phaser.Scene {
       this.player.setVelocityX(0);
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.keys.up) && this.player.body.blocked.down) {
+    const jumpPressed =
+      Phaser.Input.Keyboard.JustDown(this.keys.up) || mobileJumpRequested;
+
+    if (jumpPressed && this.player.body.blocked.down) {
       this.player.setVelocityY(this.layout.jumpVelocity);
     }
+
+    mobileJumpRequested = false;
 
     if (this.keys.down.isDown && this.player.body.blocked.down) {
       this.player.setScale(1, 0.85);
@@ -690,11 +701,17 @@ class PortfolioScene extends Phaser.Scene {
         ? `Tap E to interact: ${activeInteractable.label}`
         : `Press E to interact: ${activeInteractable.label}`;
 
-      if (Phaser.Input.Keyboard.JustDown(this.keys.interact)) {
+      const interactPressed =
+        Phaser.Input.Keyboard.JustDown(this.keys.interact) || mobileInteractRequested;
+
+      if (interactPressed) {
         openModal(activeInteractable.key);
       }
+
+      mobileInteractRequested = false;
     } else {
       interactionHint.style.display = 'none';
+      mobileInteractRequested = false;
     }
   }
 }
@@ -833,17 +850,6 @@ function setupMobileControls() {
     });
   };
 
-  const tap = (key, duration = 90) => {
-    withScene((scene) => {
-      scene.keys[key].isDown = true;
-      setTimeout(() => {
-        if (scene.keys && scene.keys[key]) {
-          scene.keys[key].isDown = false;
-        }
-      }, duration);
-    });
-  };
-
   const bindHoldButton = (button, key) => {
     const start = (e) => {
       e.preventDefault();
@@ -868,12 +874,12 @@ function setupMobileControls() {
 
   btnJump.addEventListener('touchstart', (e) => {
     e.preventDefault();
-    tap('up');
+    mobileJumpRequested = true;
   }, { passive: false });
 
   btnJump.addEventListener('mousedown', (e) => {
     e.preventDefault();
-    tap('up');
+    mobileJumpRequested = true;
   });
 
   btnInteract.addEventListener('touchstart', (e) => {
@@ -881,7 +887,7 @@ function setupMobileControls() {
     if (isModalOpen) {
       closeModal();
     } else {
-      tap('interact');
+      mobileInteractRequested = true;
     }
   }, { passive: false });
 
@@ -890,7 +896,7 @@ function setupMobileControls() {
     if (isModalOpen) {
       closeModal();
     } else {
-      tap('interact');
+      mobileInteractRequested = true;
     }
   });
 }
