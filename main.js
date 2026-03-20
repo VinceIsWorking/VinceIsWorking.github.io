@@ -28,7 +28,7 @@ const portfolioContent = {
 
 </p>
       <div class="card-grid">
-        <div class="pixel-card"><strong>Base</strong> Melbourne, Australia</div>
+        <div class="pixel-card"><strong>Haidilao Premium Member</strong> 🍲 海底捞黑海会员</div>
         <div class="pixel-card"><strong>Best Dance Placing</strong> 🕺 Top 16</div>
         <div class="pixel-card"><strong>Duolingo</strong> <span id="duolingo-streak" class="pixel-streak">🔥 ${duolingoStreak}</span></div>
       </div>
