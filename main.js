@@ -917,7 +917,6 @@ this.appleTrees = [
 
     this.basketAppleCount += this.playerAppleCount;
     this.playerAppleCount = 0;
-    this.applesGroup.clear(true, true);
 
     this.updateMiniGameHud();
   }
