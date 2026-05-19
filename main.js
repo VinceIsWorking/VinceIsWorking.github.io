@@ -828,6 +828,8 @@ this.appleTrees = [
   }
 ];
 
+    const centerX = this.layout.points.resume;
+
     this.basket = this.physics.add.staticSprite(
       centerX,
       this.layout.level3Y - this.getMiniGamePlatformOffset() - 16,
