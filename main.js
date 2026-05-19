@@ -1,6 +1,11 @@
 const PLATFORM_TILE_WIDTH = 53;
 const PLATFORM_TILE_HEIGHT = 16;
 const PLATFORM_TILE_COUNT = 2;
+const MINIGAME_TRIGGER_HITS = 5;
+const MINIGAME_TRIGGER_WINDOW_MS = 10000;
+const MINIGAME_APPLE_DROP_INTERVAL_MS = 2000;
+const MINIGAME_MAX_GROUND_APPLES = 8;
+const MINIGAME_MAX_CARRIED_APPLES = 2;
 
 let activeInteractable = null;
 let isModalOpen = false;
@@ -285,6 +290,12 @@ window.addEventListener('keydown', (e) => {
 class PortfolioScene extends Phaser.Scene {
   constructor() {
     super('PortfolioScene');
+
+    this.minigameActive = false;
+    this.minigameHitTimestamps = [];
+    this.lastMiniGameHitAt = 0;
+    this.playerAppleCount = 0;
+    this.basketAppleCount = 0;
   }
 
   preload() {
@@ -311,6 +322,10 @@ class PortfolioScene extends Phaser.Scene {
     this.createControls();
     this.createOverlapZones();
     this.createSigns();
+
+    this.createMiniGamePlatform();
+    this.createMiniGameObjects();
+    this.createMiniGameAppleSpawner();
   }
 
   createTextures() {
@@ -430,70 +445,85 @@ class PortfolioScene extends Phaser.Scene {
       g.generateTexture('snowflake', 6, 6);
     }
 
+    if (!this.textures.exists('apple')) {
+      g.clear();
+      g.fillStyle(0xef4444, 1);
+      g.fillCircle(8, 9, 7);
+      g.fillStyle(0x7c2d12, 1);
+      g.fillRect(7, 1, 2, 5);
+      g.fillStyle(0x16a34a, 1);
+      g.fillTriangle(9, 3, 15, 2, 10, 7);
+      g.generateTexture('apple', 16, 18);
+    }
+
+    if (!this.textures.exists('basket')) {
+      g.clear();
+      g.fillStyle(0x92400e, 1);
+      g.fillRect(4, 12, 40, 24);
+      g.fillStyle(0xf59e0b, 1);
+      g.fillRect(7, 15, 34, 18);
+      g.lineStyle(4, 0x78350f, 1);
+      g.strokeCircle(24, 14, 17);
+      g.generateTexture('basket', 48, 40);
+    }
+
     g.destroy();
   }
+    buildResponsiveLayout() {
+    const mobileLandscapeMode = isMobileLandscape();
 
-  buildResponsiveLayout() {
-   const mobileLandscapeMode = isMobileLandscape();
+    const groundY = this.worldHeight - (mobileLandscapeMode ? 56 : 78);
+    const moveSpeed = Phaser.Math.Clamp(this.worldWidth * 0.16, 210, 360);
+    const gravityY = Phaser.Math.Clamp(this.worldHeight * 1.9, 1450, 2100);
 
-  const groundY = this.worldHeight - (mobileLandscapeMode ? 56 : 78);
-  const moveSpeed = Phaser.Math.Clamp(this.worldWidth * 0.16, 210, 360);
-  const gravityY = Phaser.Math.Clamp(this.worldHeight * 1.9, 1450, 2100);
+    let jumpVelocity;
+    let safeVerticalStep;
+    let firstPlatformRise;
+    let safeHorizontalStep;
 
-  let jumpVelocity;
-  let safeVerticalStep;
-  let firstPlatformRise;
-  let safeHorizontalStep;
+    if (mobileLandscapeMode) {
+      jumpVelocity = -Phaser.Math.Clamp(this.worldHeight * 0.72, 520, 620);
 
-  if (mobileLandscapeMode) {
-    /*
-      关键点：
-      1. 手机跳跃高度单独控制，不再直接驱动平台间距
-      2. 平台上下距离用固定范围，视觉更松一点
-      3. 跳跃高度只比桌面降低约 25~30%，而不是硬砍 50%
-         否则平台一拉开就跳不上去
-    */
-    jumpVelocity = -Phaser.Math.Clamp(this.worldHeight * 0.72, 520, 620);
+      safeVerticalStep = Phaser.Math.Clamp(this.worldHeight * 0.11, 34, 44);
+      firstPlatformRise = Phaser.Math.Clamp(this.worldHeight * 0.13, 38, 50);
+      safeHorizontalStep = Phaser.Math.Clamp(this.worldWidth * 0.20, 130, 210);
+    } else {
+      jumpVelocity = -Phaser.Math.Clamp(this.worldHeight * 0.92, 740, 980);
 
-    safeVerticalStep = Phaser.Math.Clamp(this.worldHeight * 0.11, 34, 44);
-    firstPlatformRise = Phaser.Math.Clamp(this.worldHeight * 0.13, 38, 50);
-    safeHorizontalStep = Phaser.Math.Clamp(this.worldWidth * 0.20, 130, 210);
-  } else {
-    jumpVelocity = -Phaser.Math.Clamp(this.worldHeight * 0.92, 740, 980);
+      const theoreticalJumpHeight = (jumpVelocity * jumpVelocity) / (2 * gravityY);
 
-    const theoreticalJumpHeight = (jumpVelocity * jumpVelocity) / (2 * gravityY);
+      safeVerticalStep = Phaser.Math.Clamp(theoreticalJumpHeight * 0.68, 44, 92);
+      firstPlatformRise = Phaser.Math.Clamp(theoreticalJumpHeight * 0.62, 70, 130);
+      safeHorizontalStep = Phaser.Math.Clamp(this.worldWidth * 0.16, 120, 220);
+    }
 
-    safeVerticalStep = Phaser.Math.Clamp(theoreticalJumpHeight * 0.68, 44, 92);
-    firstPlatformRise = Phaser.Math.Clamp(theoreticalJumpHeight * 0.62, 70, 130);
-    safeHorizontalStep = Phaser.Math.Clamp(this.worldWidth * 0.16, 120, 220);
+    const level1Y = groundY - firstPlatformRise;
+    const level2Y = level1Y - safeVerticalStep;
+    const level3Y = level2Y - safeVerticalStep;
+    const level4Y = level3Y - safeVerticalStep;
+
+    const centerX = this.worldWidth / 2;
+
+    const points = {
+      about: centerX - safeHorizontalStep / 2,
+      projects: centerX + safeHorizontalStep / 2,
+      resume: centerX - safeHorizontalStep / 2,
+      contact: centerX + safeHorizontalStep / 2
+    };
+
+    return {
+      groundY,
+      level1Y,
+      level2Y,
+      level3Y,
+      level4Y,
+      points,
+      moveSpeed,
+      gravityY,
+      jumpVelocity,
+      mobileLandscapeMode
+    };
   }
-
-  const level1Y = groundY - firstPlatformRise;
-  const level2Y = level1Y - safeVerticalStep;
-  const level3Y = level2Y - safeVerticalStep;
-  const level4Y = level3Y - safeVerticalStep;
-
-  const centerX = this.worldWidth / 2;
-  const points = {
-    about: centerX - safeHorizontalStep / 2,
-    projects: centerX + safeHorizontalStep / 2,
-    resume: centerX - safeHorizontalStep / 2,
-    contact: centerX + safeHorizontalStep / 2
-  };
-
-  return {
-    groundY,
-    level1Y,
-    level2Y,
-    level3Y,
-    level4Y,
-    points,
-    moveSpeed,
-    gravityY,
-    jumpVelocity,
-    mobileLandscapeMode
-  };
-}
 
   drawBackground() {
     const themeStyles = {
@@ -504,16 +534,31 @@ class PortfolioScene extends Phaser.Scene {
     };
 
     const style = themeStyles[currentWeatherTheme] || themeStyles.cloudy;
+
     this.cameras.main.setBackgroundColor(style.top);
 
-    this.add.rectangle(this.worldWidth / 2, this.worldHeight * 0.25, this.worldWidth, this.worldHeight * 0.5, style.top);
-    this.add.rectangle(this.worldWidth / 2, this.worldHeight * 0.75, this.worldWidth, this.worldHeight * 0.5, style.bottom);
+    this.add.rectangle(
+      this.worldWidth / 2,
+      this.worldHeight * 0.25,
+      this.worldWidth,
+      this.worldHeight * 0.5,
+      style.top
+    );
+
+    this.add.rectangle(
+      this.worldWidth / 2,
+      this.worldHeight * 0.75,
+      this.worldWidth,
+      this.worldHeight * 0.5,
+      style.bottom
+    );
 
     if (currentWeatherTheme === 'sunny') {
       this.add.circle(this.worldWidth * 0.12, this.worldHeight * 0.14, 42, 0xfacc15);
     }
 
     const cloudCount = currentWeatherTheme === 'sunny' ? 4 : 7;
+
     for (let i = 0; i < cloudCount; i++) {
       this.add.image(
         80 + i * (this.worldWidth / cloudCount),
@@ -523,6 +568,7 @@ class PortfolioScene extends Phaser.Scene {
     }
 
     const hillCount = Math.max(4, Math.floor(this.worldWidth / 160));
+
     for (let i = 0; i < hillCount; i++) {
       const hill = this.add.ellipse(
         i * (this.worldWidth / hillCount) + 80,
@@ -531,6 +577,7 @@ class PortfolioScene extends Phaser.Scene {
         120,
         style.hill
       );
+
       hill.setOrigin(0.5, 1);
     }
 
@@ -566,12 +613,14 @@ class PortfolioScene extends Phaser.Scene {
     const centeredPlatform = (centerX, y) => {
       const totalWidth = PLATFORM_TILE_COUNT * PLATFORM_TILE_WIDTH;
       const startX = centerX - totalWidth / 2;
+
       for (let i = 0; i < PLATFORM_TILE_COUNT; i++) {
         const platform = this.platforms.create(
           startX + i * PLATFORM_TILE_WIDTH,
           y,
           'platform'
         ).setOrigin(0, 0);
+
         platform.refreshBody();
       }
     };
@@ -607,7 +656,9 @@ class PortfolioScene extends Phaser.Scene {
     this.interactables.forEach((item) => {
       item.gameObject = this.add.image(item.x, item.y, item.sprite).setOrigin(0.5, 1);
       item.zone = this.add.zone(item.x, item.y - 24, 110, 110);
+
       this.physics.world.enable(item.zone);
+
       item.zone.body.setAllowGravity(false);
       item.zone.body.moves = false;
     });
@@ -616,6 +667,7 @@ class PortfolioScene extends Phaser.Scene {
   createSigns() {
     this.interactables.forEach((item) => {
       const fontSize = this.layout.mobileLandscapeMode ? '12px' : '16px';
+
       this.add.text(item.x, item.y - 84, item.label, {
         fontFamily: 'Courier New, monospace',
         fontSize,
@@ -660,6 +712,277 @@ class PortfolioScene extends Phaser.Scene {
       this.physics.add.overlap(this.player, item.zone, () => {
         activeInteractable = item;
       });
+    });
+  }
+    createMiniGamePlatform() {
+    const platformWidth = PLATFORM_TILE_COUNT * PLATFORM_TILE_WIDTH;
+    const platformHeight = PLATFORM_TILE_HEIGHT;
+
+    const resumePlatformCenterX = this.layout.points.resume;
+    const miniGameY = this.layout.level3Y - this.getMiniGamePlatformOffset();
+
+    this.miniGamePlatformVisual = this.add.rectangle(
+      resumePlatformCenterX,
+      miniGameY + platformHeight / 2,
+      platformWidth,
+      platformHeight,
+      0xa16207
+    );
+
+    this.miniGamePlatformVisual.setVisible(false);
+
+    this.miniGamePlatformZone = this.add.zone(
+      resumePlatformCenterX,
+      miniGameY + platformHeight / 2,
+      platformWidth,
+      platformHeight
+    );
+
+    this.physics.add.existing(this.miniGamePlatformZone, true);
+
+    this.miniGamePlatformZone.name = 'MiniGame';
+
+    this.miniGamePlatformCollider = this.physics.add.collider(
+      this.player,
+      this.miniGamePlatformZone,
+      () => {
+        this.registerMiniGamePlatformHit();
+      }
+    );
+  }
+
+  getMiniGamePlatformOffset() {
+    return this.layout.level2Y - this.layout.level3Y;
+  }
+
+  registerMiniGamePlatformHit() {
+    if (this.minigameActive) return;
+    if (!this.player || !this.player.body || !this.miniGamePlatformZone) return;
+
+    const now = this.time.now;
+
+    if (now - this.lastMiniGameHitAt < 250) return;
+
+    const playerBottom = this.player.body.bottom;
+    const platformTop = this.miniGamePlatformZone.body.top;
+    const isUnderPlatform = playerBottom > platformTop + 6;
+    const isHittingFromBelow =  isUnderPlatform && (this.player.body.blocked.up || this.player.body.touching.up);
+
+    if (!isHittingFromBelow) return;
+
+    this.lastMiniGameHitAt = now;
+
+    this.minigameHitTimestamps.push(now);
+
+    this.minigameHitTimestamps = this.minigameHitTimestamps.filter(
+      (time) => now - time <= MINIGAME_TRIGGER_WINDOW_MS
+    );
+
+    if (this.minigameHitTimestamps.length >= MINIGAME_TRIGGER_HITS) {
+      this.startMiniGame();
+    }
+  }
+
+  createMiniGameObjects() {
+    this.appleTrees = [];
+    this.applesGroup = this.physics.add.group({
+      allowGravity: true,
+      collideWorldBounds: true
+    });
+
+    this.physics.add.collider(this.applesGroup, this.platforms);
+    this.physics.add.collider(this.applesGroup, this.miniGamePlatformZone);
+    this.physics.add.collider(
+      this.applesGroup,
+      this.applesGroup,
+      undefined,
+      (a, b) => a !== b
+    );
+
+    this.physics.add.overlap(this.player, this.applesGroup, (player, apple) => {
+      this.collectApple(apple);
+    });
+
+    const treeBaseY = this.layout.level3Y - this.getMiniGamePlatformOffset() - 44;
+    const treeSpacing = Math.max(72, Math.min(120, this.worldWidth * 0.12));
+    const centerX = this.layout.points.resume;
+
+    for (let i = 0; i < 4; i++) {
+      const treeX = centerX + (i - 1.5) * treeSpacing;
+
+      const trunk = this.add.rectangle(treeX, treeBaseY, 16, 58, 0x92400e);
+      trunk.setOrigin(0.5, 1);
+      trunk.setVisible(false);
+
+      const leaves = this.add.circle(treeX, treeBaseY - 52, 34, 0x16a34a);
+      leaves.setVisible(false);
+
+      const leaves2 = this.add.circle(treeX - 22, treeBaseY - 43, 24, 0x15803d);
+      leaves2.setVisible(false);
+
+      const leaves3 = this.add.circle(treeX + 22, treeBaseY - 43, 24, 0x22c55e);
+      leaves3.setVisible(false);
+
+      this.appleTrees.push({
+        x: treeX,
+        y: treeBaseY - 76,
+        visuals: [trunk, leaves, leaves2, leaves3]
+      });
+    }
+
+    this.basket = this.physics.add.staticSprite(
+      centerX,
+      this.layout.level3Y - this.getMiniGamePlatformOffset() - 16,
+      'basket'
+    );
+
+    this.basket.name = 'MiniGameBasket';
+    this.basket.setVisible(false);
+    this.basket.refreshBody();
+
+    this.physics.add.overlap(this.player, this.basket, () => {
+      this.depositApples();
+    });
+
+    this.miniGameHud = this.add.text(
+      16,
+      16,
+      '',
+      {
+        fontFamily: 'Courier New, monospace',
+        fontSize: this.layout.mobileLandscapeMode ? '12px' : '16px',
+        color: '#ffffff',
+        backgroundColor: '#0f172a',
+        padding: { left: 8, right: 8, top: 6, bottom: 6 }
+      }
+    );
+
+    this.miniGameHud.setScrollFactor(0);
+    this.miniGameHud.setDepth(1000);
+    this.miniGameHud.setVisible(false);
+
+    this.updateMiniGameHud();
+  }
+
+  createMiniGameAppleSpawner() {
+    this.appleSpawnTimer = this.time.addEvent({
+      delay: MINIGAME_APPLE_DROP_INTERVAL_MS,
+      loop: true,
+      callback: () => {
+        if (!this.minigameActive) return;
+        this.spawnMiniGameApple();
+      }
+    });
+  }
+
+  spawnMiniGameApple() {
+    if (!this.applesGroup || !this.appleTrees || this.appleTrees.length === 0) return;
+
+    if (this.applesGroup.countActive(true) >= MINIGAME_MAX_GROUND_APPLES) {
+      return;
+    }
+
+    const tree = Phaser.Utils.Array.GetRandom(this.appleTrees);
+
+    const apple = this.applesGroup.create(tree.x, tree.y, 'apple');
+
+    apple.setCircle(7);
+    apple.setBounce(0.12);
+    apple.setDragX(40);
+    apple.setCollideWorldBounds(true);
+    apple.body.setGravityY(this.layout.gravityY * 0.55);
+    apple.setVelocityX(Phaser.Math.Between(-25, 25));
+    apple.setVelocityY(Phaser.Math.Between(-20, 10));
+    apple.setData('isApple', true);
+  }
+
+  collectApple(apple) {
+    if (!this.minigameActive) return;
+    if (!apple || !apple.active) return;
+
+    if (this.playerAppleCount >= MINIGAME_MAX_CARRIED_APPLES) {
+      return;
+    }
+
+    apple.destroy();
+
+    this.playerAppleCount += 1;
+
+    this.updateMiniGameHud();
+  }
+
+  depositApples() {
+    if (!this.minigameActive) return;
+    if (this.playerAppleCount <= 0) return;
+
+    this.basketAppleCount += this.playerAppleCount;
+    this.playerAppleCount = 0;
+    this.applesGroup.clear(true, true);
+
+    this.updateMiniGameHud();
+  }
+
+  updateMiniGameHud() {
+    if (!this.miniGameHud) return;
+
+    if (!this.minigameActive) {
+      this.miniGameHud.setText('');
+      return;
+    }
+
+    this.miniGameHud.setText(
+      `MiniGame\nCarry: ${this.playerAppleCount}/${MINIGAME_MAX_CARRIED_APPLES}\nBasket: ${this.basketAppleCount}\nGround: ${this.applesGroup ? this.applesGroup.countActive(true) : 0}/${MINIGAME_MAX_GROUND_APPLES}`
+    );
+  }
+
+  startMiniGame() {
+    if (this.minigameActive) return;
+
+    this.minigameActive = true;
+
+    if (this.miniGamePlatformVisual) {
+      this.miniGamePlatformVisual.setVisible(true);
+    }
+
+    if (this.appleTrees) {
+      this.appleTrees.forEach((tree) => {
+        tree.visuals.forEach((visual) => visual.setVisible(true));
+      });
+    }
+
+    if (this.basket) {
+      this.basket.setVisible(true);
+    }
+
+    if (this.miniGameHud) {
+      this.miniGameHud.setVisible(true);
+    }
+
+    this.updateMiniGameHud();
+
+    const title = this.add.text(
+      this.worldWidth / 2,
+      Math.max(72, this.worldHeight * 0.18),
+      'MINIGAME START',
+      {
+        fontFamily: 'Courier New, monospace',
+        fontSize: this.layout.mobileLandscapeMode ? '20px' : '32px',
+        color: '#0f172a',
+        backgroundColor: '#facc15',
+        padding: { left: 14, right: 14, top: 8, bottom: 8 }
+      }
+    );
+
+    title.setOrigin(0.5);
+    title.setDepth(1200);
+
+    this.tweens.add({
+      targets: title,
+      y: title.y - 24,
+      alpha: 0,
+      duration: 1800,
+      ease: 'Sine.easeOut',
+      onComplete: () => title.destroy()
     });
   }
 
@@ -738,6 +1061,10 @@ class PortfolioScene extends Phaser.Scene {
     } else {
       interactionHint.style.display = 'none';
       mobileInteractRequested = false;
+    }
+
+    if (this.minigameActive) {
+      this.updateMiniGameHud();
     }
   }
 }
@@ -825,6 +1152,7 @@ function initExperience() {
     } else {
       restartSceneToViewport();
     }
+
     return;
   }
 
@@ -915,6 +1243,7 @@ function setupMobileControls() {
 
   btnInteract.addEventListener('touchstart', (e) => {
     e.preventDefault();
+
     if (isModalOpen) {
       closeModal();
     } else {
@@ -924,6 +1253,7 @@ function setupMobileControls() {
 
   btnInteract.addEventListener('mousedown', (e) => {
     e.preventDefault();
+
     if (isModalOpen) {
       closeModal();
     } else {
