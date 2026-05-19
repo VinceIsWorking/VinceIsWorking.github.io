@@ -803,32 +803,30 @@ class PortfolioScene extends Phaser.Scene {
       this.collectApple(apple);
     });
 
-    const treeBaseY = this.layout.level3Y - this.getMiniGamePlatformOffset() - 44;
-    const treeSpacing = Math.max(72, Math.min(120, this.worldWidth * 0.12));
-    const centerX = this.layout.points.resume;
+    const groundTreeY = this.layout.groundY - 88;
 
-    for (let i = 0; i < 4; i++) {
-      const treeX = centerX + (i - 1.5) * treeSpacing;
-
-      const trunk = this.add.rectangle(treeX, treeBaseY, 16, 58, 0x92400e);
-      trunk.setOrigin(0.5, 1);
-      trunk.setVisible(false);
-
-      const leaves = this.add.circle(treeX, treeBaseY - 52, 34, 0x16a34a);
-      leaves.setVisible(false);
-
-      const leaves2 = this.add.circle(treeX - 22, treeBaseY - 43, 24, 0x15803d);
-      leaves2.setVisible(false);
-
-      const leaves3 = this.add.circle(treeX + 22, treeBaseY - 43, 24, 0x22c55e);
-      leaves3.setVisible(false);
-
-      this.appleTrees.push({
-        x: treeX,
-        y: treeBaseY - 76,
-        visuals: [trunk, leaves, leaves2, leaves3]
-      });
-    }
+this.appleTrees = [
+  {
+    x: this.worldWidth * 0.10,
+    y: groundTreeY,
+    visuals: []
+  },
+  {
+    x: this.worldWidth * 0.18,
+    y: groundTreeY,
+    visuals: []
+  },
+  {
+    x: this.worldWidth * 0.82,
+    y: groundTreeY,
+    visuals: []
+  },
+  {
+    x: this.worldWidth * 0.90,
+    y: groundTreeY,
+    visuals: []
+  }
+];
 
     this.basket = this.physics.add.staticSprite(
       centerX,
@@ -942,12 +940,6 @@ class PortfolioScene extends Phaser.Scene {
 
     if (this.miniGamePlatformVisual) {
       this.miniGamePlatformVisual.setVisible(true);
-    }
-
-    if (this.appleTrees) {
-      this.appleTrees.forEach((tree) => {
-        tree.visuals.forEach((visual) => visual.setVisible(true));
-      });
     }
 
     if (this.basket) {
