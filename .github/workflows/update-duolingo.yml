@@ -2,8 +2,8 @@ name: Update Duolingo Streak
 
 on:
   schedule:
-  - cron: '0 13 * * *'
-  - cron: '0 14 * * *'
+    - cron: '0 13 * * *'
+    - cron: '0 14 * * *'
   workflow_dispatch:
 
 permissions:
@@ -18,32 +18,66 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Fetch Duolingo streak
+        shell: bash
         run: |
-          curl -s "https://www.duolingo.com/2017-06-30/users?username=VincentSaiko" -o duolingo-raw.json
+          for attempt in 1 2 3 4; do
+            echo "Duolingo API attempt $attempt/4"
+            http_code=$(curl -sS -L --connect-timeout 10 --max-time 30 \
+              -w '%{http_code}' \
+              'https://www.duolingo.com/2017-06-30/users?username=VincentSaiko' \
+              -o duolingo-raw.json) || http_code="000"
+            echo "HTTP status: $http_code"
 
-          python3 - <<'PY'
+            if [[ "$http_code" == "200" ]] && python3 - <<'PY'
           import json
           from datetime import datetime, timezone
 
-          with open("duolingo-raw.json", "r", encoding="utf-8") as f:
-              raw = json.load(f)
-
-          streak = raw["users"][0]["streak"]
+          try:
+              with open("duolingo-raw.json", encoding="utf-8") as f:
+                  raw = json.load(f)
+              users = raw.get("users")
+              if not isinstance(users, list) or not users:
+                  raise ValueError("Duolingo returned no users")
+              user = next((u for u in users if u.get("username") == "VincentSaiko"), None)
+              if user is None:
+                  raise ValueError("Expected username was not returned")
+              streak = user.get("streak")
+              if not isinstance(streak, int) or isinstance(streak, bool) or streak < 0:
+                  raise ValueError("Invalid streak value")
+          except (OSError, json.JSONDecodeError, ValueError, AttributeError, TypeError) as exc:
+              print(f"API response validation failed: {exc}")
+              raise SystemExit(1)
 
           output = {
               "streak": streak,
               "updatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%d")
           }
-
           with open("duolingo.json", "w", encoding="utf-8") as f:
               json.dump(output, f, ensure_ascii=False, indent=2)
+          print(f"Validated Duolingo streak: {streak}")
           PY
+            then
+              exit 0
+            fi
+
+            if [[ "$attempt" -lt 4 ]]; then
+              echo "Retrying after $((attempt * 10)) seconds..."
+              sleep $((attempt * 10))
+            fi
+          done
+          echo "::error::Could not retrieve a valid Duolingo streak after 4 attempts; existing duolingo.json was not overwritten."
+          exit 1
 
       - name: Commit and push if changed
+        shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add duolingo.json
-          git diff --cached --quiet || git commit -m "Update Duolingo streak"
-          git push
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update Duolingo streak"
+            git push
+          fi
